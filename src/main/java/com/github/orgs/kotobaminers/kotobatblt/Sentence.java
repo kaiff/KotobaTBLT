@@ -10,9 +10,9 @@ public class Sentence {
 	private int conversation = 0;
 	private int npc = 0;
 	private String task = "";
+	private Map<Expression, String> lines = new HashMap<>();
 	
 	enum Expression {KANJI, KANA, ROMAJI, ENGLISH}
-	private Map<Expression, String> lines = new HashMap<>();
 	
 	private Sentence() {
 	}
