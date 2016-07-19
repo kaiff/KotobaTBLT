@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginPermission;
+
 public class Sentence {
 
 	private int conversation = 0;

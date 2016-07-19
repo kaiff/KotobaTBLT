@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.database;
 
 import java.io.File;
 import java.sql.Connection;
@@ -15,23 +15,35 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import com.github.orgs.kotobaminers.kotobatblt.PlayerData;
+import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
+import com.github.orgs.kotobaminers.kotobatblt.Sentence;
+
 public class DatabaseManager {
 	
 	private static Connection connection = null;
 	private static Statement statement = null;
-	private static final String sentence = "\"C:\\\\Soft\\\\MinecraftServer\\\\plugins\\\\KotobaTBLT\\\\Sentence\\\\Sentence.csv\"";
-	private static final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(PluginManager.getPlugin().getDataFolder().getAbsolutePath() + "\\Config\\config.yml")); 
+	private static final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(PluginManager.getPlugin().getDataFolder().getAbsolutePath() + "/Config/config.yml")); 
 	private static String table = "";
 	private static String user = "";
 	private static String pass = "";
+	private static String sentence = "";
 	
 	private DatabaseManager() {
 	}
-
+	
 	private static void loadConfig() {
 		table = config.getString("TABLE");
 		user = config.getString("USER");
 		pass = config.getString("PASS");
+		List<String> paths = new ArrayList<String>();
+		paths.addAll(Arrays.asList(PluginManager.getPlugin().getDataFolder().getAbsolutePath().split("\\\\")));
+		paths.addAll(Arrays.asList("Sentence", "Sentence.csv"));
+		sentence = String.join("//", paths);
+	}
+	
+	public static void test() {//TODO: DELETE AFTER TESTING
+		loadConfig();
 	}
 	
 	public synchronized static void openConnection() {
@@ -68,7 +80,7 @@ public class DatabaseManager {
 			statement = connection.createStatement();
 			statement.executeUpdate(create);
 			
-			String importCsv = "LOAD DATA LOCAL INFILE " + sentence + " REPLACE INTO TABLE SENTENCE FIELDS TERMINATED BY ',';";
+			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentence + "\" REPLACE INTO TABLE SENTENCE FIELDS TERMINATED BY ',';";
 			statement.executeUpdate(importCsv);
 			if(statement != null) {
 				statement.close();
@@ -260,4 +272,17 @@ public class DatabaseManager {
 
 		return Optional.empty();
 	}
+	
+	public static void executeUpdate(String query) {
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+			if(statement != null) {
+				statement.close();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
 }

@@ -4,5 +4,3 @@ main: com.github.orgs.kotobaminers.kotobatblt.KotobaTBLT
 
 commands:
   TBLT:
-  TEST:
-    aliases: [t]

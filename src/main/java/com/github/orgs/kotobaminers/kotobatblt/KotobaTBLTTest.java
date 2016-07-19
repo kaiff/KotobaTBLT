@@ -2,16 +2,22 @@ package com.github.orgs.kotobaminers.kotobatblt;
 
 import java.util.UUID;
 
+import com.github.orgs.kotobaminers.database.DatabaseManager;
+
 public class KotobaTBLTTest {
 	private KotobaTBLTTest() {
 	}
 	
-	public static void testAll() {
+	public static void test() {
 		System.out.println("test");
-		testHologram();
+		testDatabase();
 	}
 	
 	private static void testHologram() {
+	}
+	
+	private static void testDatabase() {
+		DatabaseManager.test();
 	}
 	
 	private static void testSentence() {

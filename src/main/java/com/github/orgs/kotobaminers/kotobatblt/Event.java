@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
+import com.github.orgs.kotobaminers.database.DatabaseManager;
 import com.github.orgs.kotobaminers.kotobatblt.Sentence.Expression;
 
 import net.citizensnpcs.api.event.NPCRightClickEvent;
