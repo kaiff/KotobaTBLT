@@ -13,10 +13,8 @@ public final class KotobaTBLT extends JavaPlugin {
     	
     	PluginManager.initialize(this);
     	DatabaseManager.openConnection();
-    	DatabaseManager.importSentence();
 
 		HologramsManager.initializeAllHologram();
-
     }
     
     @Override

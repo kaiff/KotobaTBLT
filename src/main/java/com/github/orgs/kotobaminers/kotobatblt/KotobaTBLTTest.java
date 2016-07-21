@@ -2,15 +2,16 @@ package com.github.orgs.kotobaminers.kotobatblt;
 
 import java.util.UUID;
 
+import org.bukkit.entity.Player;
+
 import com.github.orgs.kotobaminers.database.DatabaseManager;
+import com.github.orgs.kotobaminers.userinterface.PluginGUI;
 
 public class KotobaTBLTTest {
 	private KotobaTBLTTest() {
 	}
 	
-	public static void test() {
-		System.out.println("test");
-		testDatabase();
+	public static void testGUI(Player player) {
 	}
 	
 	private static void testHologram() {

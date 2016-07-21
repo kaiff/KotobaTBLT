@@ -1,20 +1,19 @@
 package com.github.orgs.kotobaminers.kotobatblt;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import net.md_5.bungee.api.ChatColor;
-
-import java.util.ArrayList;
-import java.util.Arrays;
 
 public class PluginMessage {
 	
 	private static final String prefix = "" + ChatColor.GOLD + ChatColor.BOLD + "[TBLT]" + ChatColor.RESET;
 	private static final String TOO_MANY_ARGS = "Too Many Args: Message Error";
 	
-	enum Message {
+	public enum Message {
 		NO_PERMISSION(Arrays.asList("No Permission: ")),
-		INVALID(Arrays.asList("Invalid"));
+		INVALID(Arrays.asList("Invalid: "));
 		
 		private List<String> base;
 		private Message(List<String> base) {

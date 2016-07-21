@@ -15,8 +15,8 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import com.github.orgs.kotobaminers.kotobatblt.PlayerData;
 import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
+import com.github.orgs.kotobaminers.kotobatblt.PluginMessage.Message;
 import com.github.orgs.kotobaminers.kotobatblt.Sentence;
 
 public class DatabaseManager {
@@ -38,7 +38,7 @@ public class DatabaseManager {
 		pass = config.getString("PASS");
 		List<String> paths = new ArrayList<String>();
 		paths.addAll(Arrays.asList(PluginManager.getPlugin().getDataFolder().getAbsolutePath().split("\\\\")));
-		paths.addAll(Arrays.asList("Sentence", "Sentence.csv"));
+		paths.add("Sentence");
 		sentence = String.join("//", paths);
 	}
 	
@@ -65,7 +65,14 @@ public class DatabaseManager {
 		}
 	}
 	
-	public synchronized static void importSentence() {
+	public synchronized static void importSentence(String name) {
+		String path = sentence + "//" + name + ".csv";
+		File file = new File(path);
+		if(!file.exists()) {
+			Bukkit.getLogger().info(Message.INVALID.getMessage(Arrays.asList(path)));
+			return;
+		}
+		
 		try {
 			String create = "CREATE TABLE IF NOT EXISTS SENTENCE "
 							+ "(id INTEGER NOT NULL, "
@@ -80,7 +87,7 @@ public class DatabaseManager {
 			statement = connection.createStatement();
 			statement.executeUpdate(create);
 			
-			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentence + "\" REPLACE INTO TABLE SENTENCE FIELDS TERMINATED BY ',';";
+			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentence + "//" + name + ".csv \" REPLACE INTO TABLE SENTENCE FIELDS TERMINATED BY ',';";
 			statement.executeUpdate(importCsv);
 			if(statement != null) {
 				statement.close();
@@ -97,7 +104,6 @@ public class DatabaseManager {
 		PlayerData data = getPlayerData(uuid).orElse(PlayerData.create(null, null, 0, 0));
 		int currentConv = data.getConversation();
 		int currentLine = data.getLine();
-		System.out.println(Arrays.asList(currentConv, currentLine, data.getLine(), data.getConversation()));
 		if (conversation == currentConv) {
 			if(currentLine + 1 < findSentencesByConversation(conversation).orElse(new ArrayList<Sentence>()).size()) {
 				newLine = currentLine + 1;

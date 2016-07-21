@@ -50,6 +50,10 @@ public class PluginCommandExecutor implements CommandExecutor {
 	
 	enum PluginCommand {
 		TBLT(Arrays.asList("TBLT"), null, PluginPermission.PLAYER, "Root Commands"),
+
+		OP(Arrays.asList("OP"), TBLT, PluginPermission.OP, "Operator's Commands"),
+		LOAD(Arrays.asList("LOAD", "L"), OP, PluginPermission.OP, "Load A Sentence File"),
+
 		DEVELOP(Arrays.asList("DEVELOP", "DEV"), TBLT, PluginPermission.DEVELOPER, "Developper's Commands"),
 		TEST(Arrays.asList("TEST"), DEVELOP, PluginPermission.DEVELOPER, "Tests for Development"),
 		DATABASE(Arrays.asList("DATABASE, DB"), DEVELOP, PluginPermission.DEVELOPER, "Database Commands"),
@@ -165,16 +169,19 @@ public class PluginCommandExecutor implements CommandExecutor {
 		List<String> opts = selected.takeArguments(args);
 		
 		switch(selected) {
-		case TBLT:
-		case DEVELOP:
-			return true;
+		case LOAD:
+			if(0 < opts.size()) {
+				DatabaseManager.importSentence(opts.get(0));
+				return true;
+			}
+			break;
 		case UPDATE:
 			if(0 < opts.size()) {
 				DatabaseManager.executeUpdate(ExternalQuery.loadQuery(opts.get(0)));
 			}
 			return true;
 		case TEST:
-			KotobaTBLTTest.test();
+			KotobaTBLTTest.testGUI(player);
 			return true;
 		default:
 			break;

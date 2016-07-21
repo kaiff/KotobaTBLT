@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.database;
 
 import java.util.UUID;
 
