@@ -15,7 +15,11 @@ import org.bukkit.entity.Player;
 
 import com.github.orgs.kotobaminers.database.DatabaseManager;
 import com.github.orgs.kotobaminers.database.ExternalQuery;
-import com.github.orgs.kotobaminers.kotobatblt.PluginMessage.Message;
+import com.github.orgs.kotobaminers.database.PlayerData;
+import com.github.orgs.kotobaminers.database.PlayerManager;
+import com.github.orgs.kotobaminers.database.SentenceManager;
+import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
+import com.github.orgs.kotobaminers.utility.PluginSound;
 
 public class PluginCommandExecutor implements CommandExecutor {
 	private final KotobaTBLT plugin;
@@ -49,23 +53,27 @@ public class PluginCommandExecutor implements CommandExecutor {
 	}
 	
 	enum PluginCommand {
-		TBLT(Arrays.asList("TBLT"), null, PluginPermission.PLAYER, "Root Commands"),
+		TBLT(Arrays.asList("TBLT"), Arrays.asList(), null, PluginPermission.PLAYER, "Root Commands"),
+		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.OP, "Edit a Sentence"),
 
-		OP(Arrays.asList("OP"), TBLT, PluginPermission.OP, "Operator's Commands"),
-		LOAD(Arrays.asList("LOAD", "L"), OP, PluginPermission.OP, "Load A Sentence File"),
+		OP(Arrays.asList("OP"), Arrays.asList(), TBLT, PluginPermission.OP, "Operator's Commands"),
+		LOAD(Arrays.asList("LOAD", "L"), Arrays.asList("<file>"), OP, PluginPermission.OP, "Load A Sentence File"),
+		RELOAD(Arrays.asList("RELOAD", "R"), Arrays.asList(), OP, PluginPermission.OP, "Reload KotobaTBLT Plugin"),
 
-		DEVELOP(Arrays.asList("DEVELOP", "DEV"), TBLT, PluginPermission.DEVELOPER, "Developper's Commands"),
-		TEST(Arrays.asList("TEST"), DEVELOP, PluginPermission.DEVELOPER, "Tests for Development"),
-		DATABASE(Arrays.asList("DATABASE, DB"), DEVELOP, PluginPermission.DEVELOPER, "Database Commands"),
-		UPDATE(Arrays.asList("UPDATE", "U"), DATABASE, PluginPermission.DEVELOPER, "Execute Query for MySQL");
+		DEVELOP(Arrays.asList("DEVELOP", "DEV"), Arrays.asList(), TBLT, PluginPermission.DEVELOPER, "Developper's Commands"),
+		TEST(Arrays.asList("TEST"), Arrays.asList("args"), DEVELOP, PluginPermission.DEVELOPER, "Tests for Development"),
+		DATABASE(Arrays.asList("DATABASE, DB"), Arrays.asList(), DEVELOP, PluginPermission.DEVELOPER, "Database Commands"),
+		UPDATE(Arrays.asList("UPDATE", "U"), Arrays.asList("<file>"), DATABASE, PluginPermission.DEVELOPER, "Execute Query for MySQL");
 		
 		private List<String> names;
+		private List<String> examples;
 		private PluginCommand parent;
 		private PluginPermission permission;
 		private String usage;
 
-		private PluginCommand(List<String> names, PluginCommand parent, PluginPermission permission, String usage) {
+		private PluginCommand(List<String> names, List<String> examples, PluginCommand parent, PluginPermission permission, String usage) {
 			this.names = names.stream().map(String::toUpperCase).collect(Collectors.toList());
+			this.examples = examples;
 			this.parent = parent;
 			this.permission = permission;
 			this.usage = usage;
@@ -136,10 +144,8 @@ public class PluginCommandExecutor implements CommandExecutor {
 			String title = String.join(" ", this.getCommandTree().stream()
 				.map(com -> com.names.get(0).toLowerCase())
 				.collect(Collectors.toList()));
-			return "/" + title + " : " + this.usage;
+			return "/" + title + " " + String.join(" ", examples) + " : " + usage;
 		}
-		
-		
 	}
 	
 	@Override
@@ -169,12 +175,29 @@ public class PluginCommandExecutor implements CommandExecutor {
 		List<String> opts = selected.takeArguments(args);
 		
 		switch(selected) {
-		case LOAD:
+		case EDIT:
 			if(0 < opts.size()) {
-				DatabaseManager.importSentence(opts.get(0));
+				final Player p = player;
+				String edit = String.join(" ", opts);
+				PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+				data.getEditKey().getId()
+					.ifPresent(id -> SentenceManager.find(id)
+						.ifPresent(sentence -> {
+							SentenceManager.update(sentence.edit(edit, data.getEditKey().getExpression()));
+							PluginSound.FORGE.play(p);
+						}));
 				return true;
 			}
 			break;
+		case LOAD:
+			if(0 < opts.size()) {
+				SentenceManager.importSentence(opts.get(0));
+				return true;
+			}
+			break;
+		case RELOAD:
+			PluginManager.initialize(plugin);
+			return true;
 		case UPDATE:
 			if(0 < opts.size()) {
 				DatabaseManager.executeUpdate(ExternalQuery.loadQuery(opts.get(0)));

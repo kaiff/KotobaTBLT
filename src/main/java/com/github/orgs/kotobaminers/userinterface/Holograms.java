@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.userinterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,6 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.scheduler.BukkitTask;
+
+import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
 
 public class Holograms {
 	double height = 1.4;

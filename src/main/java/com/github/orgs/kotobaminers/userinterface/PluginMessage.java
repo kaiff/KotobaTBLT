@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.userinterface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +13,10 @@ public class PluginMessage {
 	
 	public enum Message {
 		NO_PERMISSION(Arrays.asList("No Permission: ")),
-		INVALID(Arrays.asList("Invalid: "));
+		INVALID(Arrays.asList("Invalid: ")),
+		EDIT_SENTENCE(Arrays.asList("Edit the Sentence: ")),
+		
+		;
 		
 		private List<String> base;
 		private Message(List<String> base) {

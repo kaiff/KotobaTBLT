@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.userinterface;
+package com.github.orgs.kotobaminers.utility;
 
 import java.util.Optional;
 

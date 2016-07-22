@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.userinterface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -7,6 +7,8 @@ import java.util.Optional;
 
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+
+import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
 
 public class HologramsManager {
 	
@@ -18,11 +20,12 @@ public class HologramsManager {
 		holograms.displayTemporarily(lines, duration);
 	}
 	
-	public static void initializeAllHologram() {
+	public static void removeAllHologram() {
 		PluginManager.getPlugin().getServer().getWorlds().stream()
 			.flatMap(w -> w.getEntities().stream().filter(e -> e.getType().equals(EntityType.ARMOR_STAND)))
 			.map(e -> (ArmorStand) e)
-			.filter(a -> !a.isVisible() && !a.hasGravity() && a.isCustomNameVisible());
+			.filter(a -> !a.isVisible() && !a.hasGravity() && a.isCustomNameVisible())
+			.forEach(a -> a.remove());
 	}
 	
 }

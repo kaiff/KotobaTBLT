@@ -5,16 +5,27 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.github.orgs.kotobaminers.kotobatblt.Sentence;
-import com.github.orgs.kotobaminers.kotobatblt.Sentence.Expression;
+import com.github.orgs.kotobaminers.database.DatabaseManager;
+import com.github.orgs.kotobaminers.database.PlayerData;
+import com.github.orgs.kotobaminers.database.PlayerManager;
+import com.github.orgs.kotobaminers.database.Sentence;
+import com.github.orgs.kotobaminers.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
+import com.github.orgs.kotobaminers.utility.Utility;
+import com.github.orgs.kotobaminers.database.SentenceManager;
 
 import net.citizensnpcs.api.npc.NPC;
 
@@ -23,6 +34,15 @@ public class PluginGUI {
 	public enum GUIIcon {
 		ENGLISH(Material.WOOL, 3, "Enter English", null),
 		JAPANESE(Material.WOOL, 14, "Enter Japanese", null),
+
+		SENTENCE_SKELETON(Material.SKULL_ITEM, 0, "", null),
+		SENTENCE_WITHER(Material.SKULL_ITEM, 1, "", null),
+		SENTENCE_ZOMBIE(Material.SKULL_ITEM, 2, "", null),
+		SENTENCE_PLAYER(Material.SKULL_ITEM, 3, "", null),
+		SENTENCE_CREEPER(Material.SKULL_ITEM, 4, "", null),
+		PREPEND(Material.IRON_INGOT, 0, "Prepend a Sentence", null),
+		APPEND(Material.GOLD_INGOT, 0, "Append a Sentence", null),
+		
 		NONE(Material.AIR, 0, "Dummy", null),
 		;
 
@@ -45,6 +65,12 @@ public class PluginGUI {
 			this.lore = Optional.ofNullable(lore);
 		}
 		
+		public static Optional<GUIIcon> findGUIIcon(ItemStack item) {
+			return Stream.of(GUIIcon.values())
+				.filter(icon -> item.getType().equals(icon.material) && item.getDurability() == icon.data)
+				.findFirst();
+		}
+		
 		public ItemStack createItemStack() {
 			ItemStack item = new ItemStack(this.material, 1, data);
 			if(item.getType() != Material.AIR) {
@@ -56,11 +82,11 @@ public class PluginGUI {
 			return item;			
 		}
 		
-		public static List<ItemStack> create(List<Sentence> sentences) {
+		public static List<ItemStack> createItemStack(List<Sentence> sentences) {
 			List<ItemStack> main = new ArrayList<>();
 			List<ItemStack> list1 = new ArrayList<>();
 			List<ItemStack> list2 = new ArrayList<>();
-			for(int i = 0; i < INVENTORY_MAX_WIDTH ; i++) {
+			for(int i = 0; i < MAX_WIDTH ; i++) {
 				if(i < sentences.size()) {
 					ItemStack skull = new ItemStack(Material.SKULL_ITEM, 1, (short) SkullType.PLAYER.ordinal());
 					NPC npc = Utility.findNPC(sentences.get(i).getNPC()).orElse(null);
@@ -117,9 +143,87 @@ public class PluginGUI {
 			main.addAll(list2);
 			return main;
 		}
+		
+		public void executeClickEvent(InventoryClickEvent event) {
+			if(event.getWhoClicked() instanceof Player) {
+				Player player = (Player) event.getWhoClicked();
+				switch(this) {
+				case APPEND:
+				case PREPEND:
+					break;
+				case ENGLISH: 
+					{
+						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+						PlayerManager.updataSentenceByInventory(data, calculateColumn(event.getRawSlot()))
+							.ifPresent(d ->
+								SentenceManager.find(d.getSentence())
+									.ifPresent(s -> {
+										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.ENGLISH))));
+										PlayerManager.update(data.editKey(data.getSentence(), Expression.ENGLISH));
+									}));	
+					}
+					break;
+				case JAPANESE:
+					{
+						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+						PlayerManager.updataSentenceByInventory(data, calculateColumn(event.getRawSlot()))
+							.ifPresent(d ->
+								SentenceManager.find(d.getSentence())
+									.ifPresent(s -> {
+										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.JAPANESE))));
+										PlayerManager.update(data.editKey(data.getSentence(), Expression.JAPANESE));
+									}));	
+					}
+					break;
+				case SENTENCE_PLAYER:
+				case SENTENCE_ZOMBIE:
+				case SENTENCE_WITHER:
+				case SENTENCE_SKELETON:
+				case SENTENCE_CREEPER:
+					player.openInventory(
+						PluginGUI.createInventory(gui -> 
+							gui.title(GUITitle.EDIT_SENTENCE.getTitle())
+								.icons(IconSet.EDIT_CONVERSATION.getIcons().stream().map(icon -> icon.createItemStack()).collect(Collectors.toList()))));
+					break;
+				case NONE:
+					break;
+				default:
+					break;
+				}
+			}
+		}
+		
+		enum IconSet {
+			EDIT_CONVERSATION(Arrays.asList(PREPEND, APPEND)),
+			;
+			
+			private final List<GUIIcon> set;
+			
+			private IconSet(List<GUIIcon> set) {
+				this.set = set;
+			}
+			public List<GUIIcon> getIcons() {
+				return set;
+			}
+		}
 	}
 	
-	private static final int INVENTORY_MAX_WIDTH = 9;
+	private static final int MAX_WIDTH = 9;
+	private static final int MAX_SIZE = 54;
+	
+	public enum GUITitle {
+		SENTENCE(ChatColor.BOLD + "Sentence"),
+		EDIT_SENTENCE(ChatColor.BOLD + "Edit Sentence"),
+		;
+		
+		private final String title;
+		private GUITitle(String title) {
+			this.title = title;
+		}
+		public String getTitle() {
+			return title;
+		}
+	}
 	
 	private PluginGUI() {
 	}
@@ -147,5 +251,19 @@ public class PluginGUI {
 			}
 		}
 		return inventory;
+	}
+	
+	public static boolean isPluginGUI(Inventory inventory) {
+		return Stream.of(GUITitle.values())
+			.anyMatch(title -> inventory.getTitle().equalsIgnoreCase(title.getTitle()));
+	}
+	public static boolean isValidSlot(InventoryClickEvent event) {
+		if(event.getRawSlot() < MAX_SIZE) {
+			return true;
+		}
+		return false;
+	}
+	private static int calculateColumn(int slot) {
+		return slot - MAX_WIDTH * (slot / MAX_WIDTH);
 	}
 }

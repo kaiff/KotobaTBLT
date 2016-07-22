@@ -18,7 +18,6 @@ public class KotobaTBLTTest {
 	}
 	
 	private static void testDatabase() {
-		DatabaseManager.test();
 	}
 	
 	private static void testSentence() {
@@ -27,7 +26,5 @@ public class KotobaTBLTTest {
 	
 	private static void testPlayer() {
 		UUID uuid = UUID.fromString("5797c479-ad5a-43b0-87ca-8852d65ac639");
-//		DatabaseManager.updataPlayerData(uuid, "kai_f");
-		DatabaseManager.getPlayerData(uuid).ifPresent(data -> System.out.println(data.toString()));
 	}
 }
