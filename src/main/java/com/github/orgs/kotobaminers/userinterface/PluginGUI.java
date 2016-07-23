@@ -18,14 +18,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.github.orgs.kotobaminers.database.DatabaseManager;
 import com.github.orgs.kotobaminers.database.PlayerData;
+import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
 import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.Sentence;
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
-import com.github.orgs.kotobaminers.utility.Utility;
+import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginCommand;
 import com.github.orgs.kotobaminers.database.SentenceManager;
+import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
+import com.github.orgs.kotobaminers.utility.PluginSound;
+import com.github.orgs.kotobaminers.utility.Utility;
 
 import net.citizensnpcs.api.npc.NPC;
 
@@ -40,8 +42,10 @@ public class PluginGUI {
 		SENTENCE_ZOMBIE(Material.SKULL_ITEM, 2, "", null),
 		SENTENCE_PLAYER(Material.SKULL_ITEM, 3, "", null),
 		SENTENCE_CREEPER(Material.SKULL_ITEM, 4, "", null),
+		CHANGE_SPEAKER(Material.EYE_OF_ENDER, 0, "Change the Speaker", null),
 		PREPEND(Material.IRON_INGOT, 0, "Prepend a Sentence", null),
 		APPEND(Material.GOLD_INGOT, 0, "Append a Sentence", null),
+		DELETE(Material.GLASS_BOTTLE, 0, "Delete a Sentence", null),
 		
 		NONE(Material.AIR, 0, "Dummy", null),
 		;
@@ -148,30 +152,53 @@ public class PluginGUI {
 			if(event.getWhoClicked() instanceof Player) {
 				Player player = (Player) event.getWhoClicked();
 				switch(this) {
-				case APPEND:
-				case PREPEND:
-					break;
-				case ENGLISH: 
+				case CHANGE_SPEAKER:
 					{
 						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
-						PlayerManager.updataSentenceByInventory(data, calculateColumn(event.getRawSlot()))
+						PlayerManager.update(data.editMode(EditMode.SPEAKER).edit(data.getSentence()));
+						PluginSound.CLICK.play(player);
+						player.sendMessage(Message.NONE.getMessage(Arrays.asList()) + "/tblt speaker <NPC ID>");
+					}
+					break;
+				case APPEND:
+					PluginSound.CLICK.play(player);
+					SentenceManager.find(PlayerManager.getOrDefault(player.getUniqueId()).getSentence())
+						.ifPresent(sentence -> SentenceManager.insertEmptySentence(sentence, 1));
+					break;
+				case PREPEND:
+					PluginSound.CLICK.play(player);
+					SentenceManager.find(PlayerManager.getOrDefault(player.getUniqueId()).getSentence())
+						.ifPresent(sentence -> SentenceManager.insertEmptySentence(sentence, 0));
+					break;
+				case DELETE:
+					PluginSound.CLICK.play(player);
+					SentenceManager.find(PlayerManager.getOrDefault(player.getUniqueId()).getSentence())
+						.ifPresent(sentence -> SentenceManager.delete(sentence));
+					break;
+
+				case ENGLISH: 
+					{
+						PluginSound.CLICK.play(player);
+						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+						PlayerManager.updateSentenceByInventory(data, calculateColumn(event.getRawSlot()))
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
 										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.ENGLISH))));
-										PlayerManager.update(data.editKey(data.getSentence(), Expression.ENGLISH));
+										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.ENGLISH));
 									}));	
 					}
 					break;
 				case JAPANESE:
 					{
+						PluginSound.CLICK.play(player);
 						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
-						PlayerManager.updataSentenceByInventory(data, calculateColumn(event.getRawSlot()))
+						PlayerManager.updateSentenceByInventory(data, calculateColumn(event.getRawSlot()))
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
 										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.JAPANESE))));
-										PlayerManager.update(data.editKey(data.getSentence(), Expression.JAPANESE));
+										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.JAPANESE));
 									}));	
 					}
 					break;
@@ -180,6 +207,11 @@ public class PluginGUI {
 				case SENTENCE_WITHER:
 				case SENTENCE_SKELETON:
 				case SENTENCE_CREEPER:
+					PluginSound.CLICK.play(player);
+					PlayerManager.updateSentenceByInventory(
+						PlayerManager.getOrDefault(player.getUniqueId()),
+						calculateColumn(event.getRawSlot())
+					);
 					player.openInventory(
 						PluginGUI.createInventory(gui -> 
 							gui.title(GUITitle.EDIT_SENTENCE.getTitle())
@@ -194,11 +226,9 @@ public class PluginGUI {
 		}
 		
 		enum IconSet {
-			EDIT_CONVERSATION(Arrays.asList(PREPEND, APPEND)),
+			EDIT_CONVERSATION(Arrays.asList(CHANGE_SPEAKER, PREPEND, APPEND, DELETE)),
 			;
-			
 			private final List<GUIIcon> set;
-			
 			private IconSet(List<GUIIcon> set) {
 				this.set = set;
 			}
@@ -208,7 +238,7 @@ public class PluginGUI {
 		}
 	}
 	
-	private static final int MAX_WIDTH = 9;
+	public static final int MAX_WIDTH = 9;
 	private static final int MAX_SIZE = 54;
 	
 	public enum GUITitle {

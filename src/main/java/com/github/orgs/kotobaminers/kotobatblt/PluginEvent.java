@@ -26,7 +26,7 @@ import net.citizensnpcs.api.event.NPCRightClickEvent;
 import net.citizensnpcs.api.npc.NPC;
 
 public class PluginEvent implements Listener {
-	
+
 	@EventHandler
 	public void onRightClickNPC(NPCRightClickEvent event) {
 		NPC npc = event.getNPC();
@@ -35,8 +35,8 @@ public class PluginEvent implements Listener {
 		List<Expression> expressions = Arrays.asList(Expression.JAPANESE, Expression.ENGLISH);
 
 		PlayerData data = PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId());
-		PlayerManager.updataHologram(data, npc.getId())
-			.flatMap(d -> PlayerManager.updataSentenceByHologram(d, d.getLine()))
+		PlayerManager.updateHologram(data, npc.getId())
+			.flatMap(d -> PlayerManager.updateSentenceByHologram(d, d.getLine()))
 			.ifPresent(d -> {
 				Optional<Sentence> sentence = SentenceManager.find(d.getSentence());
 				PlayerManager.update(data);

@@ -1,6 +1,9 @@
 package com.github.orgs.kotobaminers.utility;
 
+import java.util.Iterator;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.bukkit.Material;
 import org.bukkit.SkullType;
@@ -25,6 +28,13 @@ public class Utility {
 		}
 		return Optional.ofNullable(CitizensAPI.getNPCRegistry().getById(id));
 	}
+	
+	public static Stream<NPC> getAllNPCs() {
+		Iterator<NPC> iterator = CitizensAPI.getNPCRegistry().iterator();
+		Iterable<NPC> iterable = () -> iterator;
+		return StreamSupport.stream(iterable.spliterator(), false);
+	}
+
 //TODO: NPC skin system is to do later	
 //	public static Optional<String> findSkinName(NPC npc) {
 //		if (npc.data().has(Skin.CACHED_SKIN_UUID_NAME_METADATA)) {

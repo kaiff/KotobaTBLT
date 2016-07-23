@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
@@ -17,27 +18,33 @@ public abstract class DatabaseManager {
 	static Connection connection = null;
 	static Statement statement = null;
 	private static final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(PluginManager.getPlugin().getDataFolder().getAbsolutePath() + "/Config/config.yml")); 
-	private static String table = "";
+	private static String database = "initial";//TODO
 	private static String user = "";
 	private static String pass = "";
-	static String sentence = "";
+	static String sentenceTable = "";;
+	static String playerTable = "";;
+	static String sentenceDir = "";
 	
 	DatabaseManager() {
 	}
 	
 	public static void loadConfig() {
-		table = config.getString("TABLE");
+		database = config.getString("DATABASE");
 		user = config.getString("USER");
 		pass = config.getString("PASS");
+		sentenceTable = config.getString("SENTENCE_TABLE");
+		playerTable = config.getString("PLAYER_TABLE");
 		List<String> paths = new ArrayList<String>();
 		paths.addAll(Arrays.asList(PluginManager.getPlugin().getDataFolder().getAbsolutePath().split("\\\\")));
 		paths.add("Sentence");
-		sentence = String.join("//", paths);
+		sentenceDir = String.join("//", paths);
+		Bukkit.getServer().getOnlinePlayers().stream()
+			.forEach(p -> p.sendMessage(String.join(", ", Arrays.asList(database, user, sentenceTable, playerTable, sentenceDir))));//TODO
 	}
 	
 	public synchronized static void openConnection() {
 		try {
-			connection = DriverManager.getConnection(table, user, pass);
+			connection = DriverManager.getConnection(database, user, pass);
 		} catch(SQLException e) {
 			e.printStackTrace();
 		}

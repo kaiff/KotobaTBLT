@@ -15,7 +15,8 @@ public class PluginMessage {
 		NO_PERMISSION(Arrays.asList("No Permission: ")),
 		INVALID(Arrays.asList("Invalid: ")),
 		EDIT_SENTENCE(Arrays.asList("Edit the Sentence: ")),
-		
+		SUCCESS(Arrays.asList("Success: ")),
+		NONE(Arrays.asList("")),
 		;
 		
 		private List<String> base;

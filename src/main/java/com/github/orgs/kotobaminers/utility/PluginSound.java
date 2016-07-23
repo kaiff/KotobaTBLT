@@ -6,9 +6,10 @@ import org.bukkit.entity.Player;
 public enum PluginSound {
 	GOOD(Sound.LEVEL_UP, 1, 1),
 	BAD(Sound.ITEM_BREAK, 1, 1),
-	NOTICE(Sound.NOTE_PIANO, 1, 1),
+	ATTENTION(Sound.NOTE_PIANO, 1, 1),
 	POP_UP(Sound.CHICKEN_EGG_POP, 1, 1),
 	FORGE(Sound.ANVIL_USE, 1, 1),
+	CLICK(Sound.CLICK, 1, 1),
 	;
 
 	private float volume;

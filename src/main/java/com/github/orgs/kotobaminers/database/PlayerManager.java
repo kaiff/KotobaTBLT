@@ -6,12 +6,11 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.github.orgs.kotobaminers.database.PlayerData.EditKey;
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
 
 public class PlayerManager extends DatabaseManager {
 	public synchronized static PlayerData getOrDefault(UUID uuid) {
-		String select = "SELECT * FROM player WHERE uuid = '" + uuid.toString() + "' LIMIT 1;";
+		String select = "SELECT * FROM " + playerTable + " WHERE uuid = '" + uuid.toString() + "' LIMIT 1;";
 		PlayerData data = PlayerData.initial(uuid);
 		ResultSet result = null;
 		
@@ -25,14 +24,15 @@ public class PlayerManager extends DatabaseManager {
 				final int sentence = result.getInt("sentence");
 				final int line = result.getInt("line");
 				final int edit = result.getInt("edit");
-				final Expression expression = Expression.valueOf(result.getString("expression"));
+				final EditMode mode = EditMode.valueOf(result.getString("editMode"));
 				data = PlayerData.create(d ->
 				d.uuid(uuid)
 				.npc(npc)
 				.conversation(conversation)
 				.sentence(sentence)
 				.line(line)
-				.editKey(edit, expression));
+				.edit(edit)
+				.editMode(mode));
 			}
 			update(data);
 			
@@ -51,24 +51,24 @@ public class PlayerManager extends DatabaseManager {
 	}
 
 	public synchronized static void update(PlayerData data) {
-		String update = "INSERT INTO player "
-			+ "(uuid, npc, conversation, sentence, line, edit, expression)"
+		String update = "INSERT INTO " + playerTable + " "
+			+ "(uuid, npc, conversation, sentence, line, edit, editMode)"
 			+ " VALUES"
 				+ " ('" + data.getUuid().toString() + "', '"
 				+ data.getNPC() + "', '"
 				+ data.getConversation() + "', '"
 				+ data.getSentence() + "', '"
 				+ data.getLine() + "', '"
-				+ data.getEditKey().getId().orElse(0) + "', '"
-				+ data.getEditKey().getExpression().name() + "') "
+				+ data.findEdit().orElse(0) + "', '"
+				+ data.getEditMode().name() + "') "
 			+ "ON DUPLICATE KEY UPDATE "
 				+ "uuid = '" + data.getUuid().toString() + "', "
 				+ "npc = '" + data.getNPC() + "', "
 				+ "conversation = '" + data.getConversation() + "', "
 				+ "sentence = '" + data.getSentence() + "', "
 				+ "line = '" + data.getLine() + "', "
-				+ "edit = '" + data.getEditKey().getId().orElse(0) + "', "
-				+ "expression = '" + data.getEditKey().getExpression().name() + "';";
+				+ "edit = '" + data.findEdit().orElse(0) + "', "
+				+ "editMode = '" + data.getEditMode().name() + "';";
 		try {
 			openConnection();
 			statement = connection.createStatement();
@@ -85,7 +85,7 @@ public class PlayerManager extends DatabaseManager {
 		}
 	}
 
-	public synchronized static Optional<PlayerData> updataHologram(PlayerData data, int npc) {
+	public synchronized static Optional<PlayerData> updateHologram(PlayerData data, int npc) {
 		return SentenceManager.findSentencesByNPCId(npc).orElse(new ArrayList<Sentence>()).stream()
 			.map(s -> s.getConversation())
 			.findFirst()
@@ -103,7 +103,7 @@ public class PlayerManager extends DatabaseManager {
 			});
 	}
 	
-	public synchronized static Optional<PlayerData> updataSentenceByInventory(PlayerData data, int order) {
+	public synchronized static Optional<PlayerData> updateSentenceByInventory(PlayerData data, int order) {
 		return SentenceManager.findSentencesByNPCId(data.getNPC())
 			.filter(sentences -> order < sentences.size())
 			.map(sentences -> sentences.get(order).getId())
@@ -113,7 +113,7 @@ public class PlayerManager extends DatabaseManager {
 				return d;
 			});
 	}
-	public synchronized static Optional<PlayerData> updataSentenceByHologram(PlayerData data, int hologram) {
+	public synchronized static Optional<PlayerData> updateSentenceByHologram(PlayerData data, int hologram) {
 		return SentenceManager.findSentencesByNPCId(data.getNPC())
 			.filter(sentences -> hologram < sentences.size())
 			.map(sentences -> sentences.get(hologram).getId())

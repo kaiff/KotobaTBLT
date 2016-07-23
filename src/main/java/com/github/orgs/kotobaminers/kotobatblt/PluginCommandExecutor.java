@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 import com.github.orgs.kotobaminers.database.DatabaseManager;
 import com.github.orgs.kotobaminers.database.ExternalQuery;
 import com.github.orgs.kotobaminers.database.PlayerData;
+import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
 import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.SentenceManager;
 import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
@@ -27,13 +28,15 @@ public class PluginCommandExecutor implements CommandExecutor {
 	public PluginCommandExecutor (KotobaTBLT plugin) {
 		this.plugin = plugin;
 	}
-	
+
 	enum PluginPermission{
 		PLAYER,
+		EXAMINEE,
 		OP,
 		DEVELOPER;
 		
 		private static List<UUID> developers = Arrays.asList(UUID.fromString("de7bd32b-48a9-4aae-9afa-ef1de55f5bad"), UUID.fromString("ae6898a3-63f9-45b0-ac17-c8be45210d18"));
+		private static List<UUID> examinees = Arrays.asList();
 
 		static boolean hasPermission(PluginPermission permission, Player player) {
 			switch (permission) {
@@ -42,6 +45,9 @@ public class PluginCommandExecutor implements CommandExecutor {
 				break;
 			case OP:
 				if (player.isOp()) return true;
+				break;
+			case EXAMINEE:
+				if(examinees.contains(player.getUniqueId())) return true;
 				break;
 			case PLAYER:
 				return true;
@@ -52,13 +58,21 @@ public class PluginCommandExecutor implements CommandExecutor {
 		}
 	}
 	
-	enum PluginCommand {
+	public enum PluginCommand {
 		TBLT(Arrays.asList("TBLT"), Arrays.asList(), null, PluginPermission.PLAYER, "Root Commands"),
 		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.OP, "Edit a Sentence"),
+		CHANGE_SPEAKER(Arrays.asList("SPEAKER", "S"), Arrays.asList("<NPC ID>"), TBLT, PluginPermission.OP, "Change a Speaker"),
 
 		OP(Arrays.asList("OP"), Arrays.asList(), TBLT, PluginPermission.OP, "Operator's Commands"),
 		LOAD(Arrays.asList("LOAD", "L"), Arrays.asList("<file>"), OP, PluginPermission.OP, "Load A Sentence File"),
 		RELOAD(Arrays.asList("RELOAD", "R"), Arrays.asList(), OP, PluginPermission.OP, "Reload KotobaTBLT Plugin"),
+
+		TASK(Arrays.asList("TASK", "T"), Arrays.asList(), TBLT, PluginPermission.OP, "Task Commands"),
+		CREATE_TASK(Arrays.asList("CREATE", "C"), Arrays.asList("<name>", "<NPC ID>"), TASK, PluginPermission.OP, "Create a Task"),
+		LIST_TASK(Arrays.asList("LIST", "L"), Arrays.asList(), TASK, PluginPermission.OP, "Show a Task's List"),
+
+		CONVERSATION(Arrays.asList("CONV", "C", "CONVERSATION"), Arrays.asList(), TBLT, PluginPermission.OP, "Conversation Commands"),
+		CREATE_CONVERSATION(Arrays.asList("CREATE", "C"), Arrays.asList("<task>", "<NPC ID>"), CONVERSATION, PluginPermission.OP, "Create a Conversation"),
 
 		DEVELOP(Arrays.asList("DEVELOP", "DEV"), Arrays.asList(), TBLT, PluginPermission.DEVELOPER, "Developper's Commands"),
 		TEST(Arrays.asList("TEST"), Arrays.asList("args"), DEVELOP, PluginPermission.DEVELOPER, "Tests for Development"),
@@ -110,7 +124,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 			return PluginPermission.hasPermission(permission, player);
 		}
 		
-		static List<PluginCommand> findCommands(Command command, String[] args) {
+		private static List<PluginCommand> findCommands(Command command, String[] args) {
 			List<String> path = new ArrayList<String>();
 			path.add(command.getName().toUpperCase());
 			path.addAll(Stream.of(args).map(String::toUpperCase).collect(Collectors.toList()));
@@ -173,20 +187,84 @@ public class PluginCommandExecutor implements CommandExecutor {
 			return true;
 		}
 		List<String> opts = selected.takeArguments(args);
-		
+
 		switch(selected) {
+		case LIST_TASK:
+			player.sendMessage(Message.NONE.getMessage(Arrays.asList("Task: " + String.join(", ", SentenceManager.getAllTask()))));
+			return true;
+		case CREATE_TASK:
+			if(1 < opts.size()) {
+				try {
+					int npc = Integer.valueOf(opts.get(1));
+					boolean success = SentenceManager.tryCreateTask(opts.get(0), npc);
+					if(success) {
+						PluginSound.FORGE.play(player);
+						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+					} else {
+						PluginSound.BAD.play(player);
+						player.sendMessage(Message.INVALID.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+					}
+					return true;
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
+			}
+			break;
+		case CREATE_CONVERSATION:
+			if(1 < opts.size()) {
+				try {
+					int npc = Integer.valueOf(opts.get(1));
+					boolean success = SentenceManager.tryCreateConversation(opts.get(0), npc);
+					if(success) {
+						PluginSound.FORGE.play(player);
+						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+					} else {
+						PluginSound.BAD.play(player);
+						player.sendMessage(Message.INVALID.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+					}
+					return true;
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
+			}
+			break;
+		
 		case EDIT:
 			if(0 < opts.size()) {
 				final Player p = player;
 				String edit = String.join(" ", opts);
 				PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
-				data.getEditKey().getId()
+				data.findEdit()
 					.ifPresent(id -> SentenceManager.find(id)
 						.ifPresent(sentence -> {
-							SentenceManager.update(sentence.edit(edit, data.getEditKey().getExpression()));
+							SentenceManager.update(sentence.edit(edit, data.getEditMode()));
 							PluginSound.FORGE.play(p);
 						}));
 				return true;
+			}
+			break;
+			
+		case CHANGE_SPEAKER:
+			if(0 < opts.size()) {
+				try {
+					int npc = Integer.valueOf(opts.get(0));
+					PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+					if(!data.getEditMode().equals(EditMode.SPEAKER)) break;
+					boolean success = data.findEdit()
+						.flatMap(SentenceManager::find)
+						.map(sentence -> SentenceManager.tryChangeSpeaker(sentence, npc))
+						.orElse(false);
+					if(success) {
+						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList()));
+						PluginSound.FORGE.play(player);
+					} else {
+						player.sendMessage(Message.INVALID.getMessage(Arrays.asList()));
+						PluginSound.BAD.play(player);
+					}
+					return true;
+				} catch(NumberFormatException e) {
+					e.printStackTrace();
+				}
 			}
 			break;
 		case LOAD:
@@ -204,7 +282,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 			}
 			return true;
 		case TEST:
-			KotobaTBLTTest.testGUI(player);
+			KotobaTBLTTest.testPlayer(player);
 			return true;
 		default:
 			break;
