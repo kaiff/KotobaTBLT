@@ -17,6 +17,7 @@ public final class KotobaTBLT extends JavaPlugin {
     	DatabaseManager.openConnection();
 
 		HologramsManager.removeAllHologram();
+		
     }
     
     @Override

@@ -3,36 +3,39 @@ package com.github.orgs.kotobaminers.database;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
 
 public class PlayerManager extends DatabaseManager {
+
 	public synchronized static PlayerData getOrDefault(UUID uuid) {
 		String select = "SELECT * FROM " + playerTable + " WHERE uuid = '" + uuid.toString() + "' LIMIT 1;";
 		PlayerData data = PlayerData.initial(uuid);
 		ResultSet result = null;
-		
 		try {
 			openConnection();
 			statement = connection.createStatement();
 			result = statement.executeQuery(select);
 			if(result.next()) {
 				final int npc = result.getInt("npc");
-				final int conversation = result.getInt("conversation");
 				final int sentence = result.getInt("sentence");
-				final int line = result.getInt("line");
+				final int display = result.getInt("display");
 				final int edit = result.getInt("edit");
 				final EditMode mode = EditMode.valueOf(result.getString("editMode"));
+				final PluginPermission permission = PluginPermission.valueOf(result.getString("permission"));
 				data = PlayerData.create(d ->
 				d.uuid(uuid)
 				.npc(npc)
-				.conversation(conversation)
 				.sentence(sentence)
-				.line(line)
+				.display(display)
 				.edit(edit)
-				.editMode(mode));
+				.editMode(mode)
+				.permission(permission));
 			}
 			update(data);
 			
@@ -52,23 +55,23 @@ public class PlayerManager extends DatabaseManager {
 
 	public synchronized static void update(PlayerData data) {
 		String update = "INSERT INTO " + playerTable + " "
-			+ "(uuid, npc, conversation, sentence, line, edit, editMode)"
+			+ "(uuid, npc, sentence, display, edit, editMode, permission)"
 			+ " VALUES"
 				+ " ('" + data.getUuid().toString() + "', '"
 				+ data.getNPC() + "', '"
-				+ data.getConversation() + "', '"
 				+ data.getSentence() + "', '"
-				+ data.getLine() + "', '"
+				+ data.getDisplay() + "', '"
 				+ data.findEdit().orElse(0) + "', '"
-				+ data.getEditMode().name() + "') "
+				+ data.getEditMode().name() + "', '"
+				+ data.getPermission().name() + "') "
 			+ "ON DUPLICATE KEY UPDATE "
 				+ "uuid = '" + data.getUuid().toString() + "', "
 				+ "npc = '" + data.getNPC() + "', "
-				+ "conversation = '" + data.getConversation() + "', "
 				+ "sentence = '" + data.getSentence() + "', "
-				+ "line = '" + data.getLine() + "', "
+				+ "display = '" + data.getDisplay() + "', "
 				+ "edit = '" + data.findEdit().orElse(0) + "', "
-				+ "editMode = '" + data.getEditMode().name() + "';";
+				+ "editMode = '" + data.getEditMode().name() + "', "
+				+ "permission = '" + data.getPermission().name() + "';";
 		try {
 			openConnection();
 			statement = connection.createStatement();
@@ -85,22 +88,45 @@ public class PlayerManager extends DatabaseManager {
 		}
 	}
 
-	public synchronized static Optional<PlayerData> updateHologram(PlayerData data, int npc) {
-		return SentenceManager.findSentencesByNPCId(npc).orElse(new ArrayList<Sentence>()).stream()
-			.map(s -> s.getConversation())
-			.findFirst()
-			.map(conversation -> {
-				if (conversation == data.getConversation()) {
-					if(data.getLine() + 1 < SentenceManager.findSentencesByConversation(conversation).orElse(new ArrayList<Sentence>()).size()) {
-						data.line(data.getLine() + 1);
-					} else {
-						data.line(0);
-					}
-				}
-				data.conversation(conversation);
-				update(data);
-				return data;
-			});
+	public synchronized static Optional<PlayerData> updateDisplay(PlayerData data, int npc) {
+		List<Sentence> sentences = SentenceManager.findSentencesByNPCId(npc)
+			.orElse(new ArrayList<Sentence>()).stream()
+			.collect(Collectors.toList());
+		
+		List<Integer> ids = sentences.stream()
+			.map(s -> s.getId())
+			.collect(Collectors.toList());
+		if(ids.size() < 1) return Optional.empty();
+
+		if(ids.contains(data.getDisplay())) {
+			int index = ids.indexOf(data.getDisplay());
+			if(index < ids.size() - 1) {
+				data.display(ids.get(index + 1));
+			} else {
+				data.display(ids.get(0));
+			}
+			update(data);
+		} else {
+			data.display(ids.get(0));
+			update(data);
+		}
+		return Optional.of(data);
+		
+//		return sentences
+//			.map(s -> s.getConversation())
+//			.findFirst()
+//			.map(conversation -> {
+//				if (conversation == data.getConversation()) {
+//					if(data.getDisplay() + 1 < SentenceManager.findSentencesByConversation(conversation).orElse(new ArrayList<Sentence>()).size()) {
+//						data.display(data.getDisplay() + 1);
+//					} else {
+//						data.display(0);
+//					}
+//				}
+//				data.conversation(conversation);
+//				update(data);
+//				return data;
+//			});
 	}
 	
 	public synchronized static Optional<PlayerData> updateSentenceByInventory(PlayerData data, int order) {
@@ -113,14 +139,14 @@ public class PlayerManager extends DatabaseManager {
 				return d;
 			});
 	}
-	public synchronized static Optional<PlayerData> updateSentenceByHologram(PlayerData data, int hologram) {
-		return SentenceManager.findSentencesByNPCId(data.getNPC())
-			.filter(sentences -> hologram < sentences.size())
-			.map(sentences -> sentences.get(hologram).getId())
-			.map(id -> data.sentence(id))
-			.map(d -> {
-				update(d);
-				return d;
-			});
-	}
+//	public synchronized static Optional<PlayerData> updateSentenceByHologram(PlayerData data, int display) {
+//		return SentenceManager.findSentencesByNPCId(data.getNPC())
+//			.filter(sentences -> display < sentences.size())
+//			.map(sentences -> sentences.get(display).getId())
+//			.map(id -> data.sentence(id))
+//			.map(d -> {
+//				update(d);
+//				return d;
+//			});
+//	}
 }

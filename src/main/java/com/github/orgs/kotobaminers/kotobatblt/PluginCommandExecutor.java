@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -17,10 +16,14 @@ import com.github.orgs.kotobaminers.database.DatabaseManager;
 import com.github.orgs.kotobaminers.database.ExternalQuery;
 import com.github.orgs.kotobaminers.database.PlayerData;
 import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
+import com.github.orgs.kotobaminers.database.Sentence.Expression;
 import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.SentenceManager;
 import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.PluginSound;
+
+import net.md_5.bungee.api.ChatColor;
 
 public class PluginCommandExecutor implements CommandExecutor {
 	private final KotobaTBLT plugin;
@@ -29,35 +32,6 @@ public class PluginCommandExecutor implements CommandExecutor {
 		this.plugin = plugin;
 	}
 
-	enum PluginPermission{
-		PLAYER,
-		EXAMINEE,
-		OP,
-		DEVELOPER;
-		
-		private static List<UUID> developers = Arrays.asList(UUID.fromString("de7bd32b-48a9-4aae-9afa-ef1de55f5bad"), UUID.fromString("ae6898a3-63f9-45b0-ac17-c8be45210d18"));
-		private static List<UUID> examinees = Arrays.asList();
-
-		static boolean hasPermission(PluginPermission permission, Player player) {
-			switch (permission) {
-			case DEVELOPER:
-				if(developers.contains(player.getUniqueId())) return true;
-				break;
-			case OP:
-				if (player.isOp()) return true;
-				break;
-			case EXAMINEE:
-				if(examinees.contains(player.getUniqueId())) return true;
-				break;
-			case PLAYER:
-				return true;
-			default:
-			}
-
-			return false;
-		}
-	}
-	
 	public enum PluginCommand {
 		TBLT(Arrays.asList("TBLT"), Arrays.asList(), null, PluginPermission.PLAYER, "Root Commands"),
 		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.OP, "Edit a Sentence"),
@@ -67,7 +41,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 		LOAD(Arrays.asList("LOAD", "L"), Arrays.asList("<file>"), OP, PluginPermission.OP, "Load A Sentence File"),
 		RELOAD(Arrays.asList("RELOAD", "R"), Arrays.asList(), OP, PluginPermission.OP, "Reload KotobaTBLT Plugin"),
 
-		TASK(Arrays.asList("TASK", "T"), Arrays.asList(), TBLT, PluginPermission.OP, "Task Commands"),
+		TASK(Arrays.asList("TASK", "T"), Arrays.asList(), TBLT, PluginPermission.EXAMINEE, "Task Commands"),
 		CREATE_TASK(Arrays.asList("CREATE", "C"), Arrays.asList("<name>", "<NPC ID>"), TASK, PluginPermission.OP, "Create a Task"),
 		LIST_TASK(Arrays.asList("LIST", "L"), Arrays.asList(), TASK, PluginPermission.OP, "Show a Task's List"),
 
@@ -172,7 +146,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 		}
 		List<PluginCommand> commands = PluginCommand.findCommands(command, args);
 		if(commands.size() == 0) {
-			player.sendMessage(Message.INVALID.getMessage(null));
+			player.sendMessage(Message.INVALID.getMessageWithPrefix(null));
 			return true;
 		} else if(1 < commands.size()) {
 			for (PluginCommand com : commands) {
@@ -183,14 +157,14 @@ public class PluginCommandExecutor implements CommandExecutor {
 
 		PluginCommand selected = commands.get(0);
 		if(!selected.hasPermission(player)) {
-			player.sendMessage(Message.NO_PERMISSION.getMessage(Arrays.asList(selected.name())));
+			player.sendMessage(Message.NO_PERMISSION.getMessageWithPrefix(Arrays.asList(selected.name())));
 			return true;
 		}
 		List<String> opts = selected.takeArguments(args);
 
 		switch(selected) {
 		case LIST_TASK:
-			player.sendMessage(Message.NONE.getMessage(Arrays.asList("Task: " + String.join(", ", SentenceManager.getAllTask()))));
+			player.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList("Task: " + String.join(", ", SentenceManager.getAllTask()))));
 			return true;
 		case CREATE_TASK:
 			if(1 < opts.size()) {
@@ -199,10 +173,10 @@ public class PluginCommandExecutor implements CommandExecutor {
 					boolean success = SentenceManager.tryCreateTask(opts.get(0), npc);
 					if(success) {
 						PluginSound.FORGE.play(player);
-						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+						player.sendMessage(Message.SUCCESS.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					} else {
 						PluginSound.BAD.play(player);
-						player.sendMessage(Message.INVALID.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					}
 					return true;
 				} catch (NumberFormatException e) {
@@ -217,10 +191,10 @@ public class PluginCommandExecutor implements CommandExecutor {
 					boolean success = SentenceManager.tryCreateConversation(opts.get(0), npc);
 					if(success) {
 						PluginSound.FORGE.play(player);
-						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+						player.sendMessage(Message.SUCCESS.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					} else {
 						PluginSound.BAD.play(player);
-						player.sendMessage(Message.INVALID.getMessage(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
+						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					}
 					return true;
 				} catch (NumberFormatException e) {
@@ -238,6 +212,9 @@ public class PluginCommandExecutor implements CommandExecutor {
 					.ifPresent(id -> SentenceManager.find(id)
 						.ifPresent(sentence -> {
 							SentenceManager.update(sentence.edit(edit, data.getEditMode()));
+							p.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList("Edited")));
+							p.sendMessage("" + ChatColor.AQUA + ChatColor.BOLD + " EN: " + ChatColor.RESET + Message.NONE.getMessage(sentence.getLines(Arrays.asList(Expression.ENGLISH))));
+							p.sendMessage("" + ChatColor.RED + ChatColor.BOLD + " JP: " + ChatColor.RESET + Message.NONE.getMessage(sentence.getLines(Arrays.asList(Expression.JAPANESE))));
 							PluginSound.FORGE.play(p);
 						}));
 				return true;
@@ -255,10 +232,10 @@ public class PluginCommandExecutor implements CommandExecutor {
 						.map(sentence -> SentenceManager.tryChangeSpeaker(sentence, npc))
 						.orElse(false);
 					if(success) {
-						player.sendMessage(Message.SUCCESS.getMessage(Arrays.asList()));
+						player.sendMessage(Message.SUCCESS.getMessageWithPrefix(Arrays.asList()));
 						PluginSound.FORGE.play(player);
 					} else {
-						player.sendMessage(Message.INVALID.getMessage(Arrays.asList()));
+						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList()));
 						PluginSound.BAD.play(player);
 					}
 					return true;

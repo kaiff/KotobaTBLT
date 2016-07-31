@@ -2,11 +2,14 @@ package com.github.orgs.kotobaminers.kotobatblt;
 
 import org.bukkit.entity.Player;
 
+import com.github.orgs.kotobaminers.userinterface.HologramsManager;
+
 public class KotobaTBLTTest {
 	private KotobaTBLTTest() {
 	}
 	
 	public static void testPlayer(Player player) {
+		HologramsManager.removeAllHologram();
 	}
 	
 //	private static void testHologram() {

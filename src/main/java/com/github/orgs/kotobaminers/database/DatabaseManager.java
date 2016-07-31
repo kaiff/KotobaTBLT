@@ -18,7 +18,7 @@ public abstract class DatabaseManager {
 	static Connection connection = null;
 	static Statement statement = null;
 	private static final YamlConfiguration config = YamlConfiguration.loadConfiguration(new File(PluginManager.getPlugin().getDataFolder().getAbsolutePath() + "/Config/config.yml")); 
-	private static String database = "initial";//TODO
+	private static String database = "";
 	private static String user = "";
 	private static String pass = "";
 	static String sentenceTable = "";;
@@ -38,13 +38,11 @@ public abstract class DatabaseManager {
 		paths.addAll(Arrays.asList(PluginManager.getPlugin().getDataFolder().getAbsolutePath().split("\\\\")));
 		paths.add("Sentence");
 		sentenceDir = String.join("//", paths);
-		Bukkit.getServer().getOnlinePlayers().stream()
-			.forEach(p -> p.sendMessage(String.join(", ", Arrays.asList(database, user, sentenceTable, playerTable, sentenceDir))));//TODO
 	}
 	
 	public synchronized static void openConnection() {
 		try {
-			connection = DriverManager.getConnection(database, user, pass);
+			connection = DriverManager.getConnection(database + "?useUnicode=true&characterEncoding=utf8", user, pass);
 		} catch(SQLException e) {
 			e.printStackTrace();
 		}

@@ -2,8 +2,9 @@ package com.github.orgs.kotobaminers.kotobatblt;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -20,6 +21,8 @@ import com.github.orgs.kotobaminers.userinterface.NPCManager;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUIIcon;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUITitle;
+import com.github.orgs.kotobaminers.utility.PluginSound;
+import com.github.orgs.kotobaminers.utility.Utility;
 
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import net.citizensnpcs.api.event.NPCRightClickEvent;
@@ -35,15 +38,17 @@ public class PluginEvent implements Listener {
 		List<Expression> expressions = Arrays.asList(Expression.JAPANESE, Expression.ENGLISH);
 
 		PlayerData data = PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId());
-		PlayerManager.updateHologram(data, npc.getId())
-			.flatMap(d -> PlayerManager.updateSentenceByHologram(d, d.getLine()))
-			.ifPresent(d -> {
-				Optional<Sentence> sentence = SentenceManager.find(d.getSentence());
-				PlayerManager.update(data);
-				sentence.ifPresent(s ->
-					NPCManager.findNPC(s.getNPC()).map(n -> n.getStoredLocation())
-						.ifPresent(loc -> HologramsManager.updateHologram(Holograms.create(loc), s.getConversation(), s.getLines(expressions), 20)));
-			});
+		PlayerManager.updateDisplay(data, npc.getId())
+			.ifPresent(d ->SentenceManager.find(d.getDisplay())
+			.ifPresent(s ->NPCManager.findNPC(s.getNPC()).map(n -> n.getStoredLocation())
+				.ifPresent(loc -> {
+					List<String> lines = s.getLines(expressions);
+					SentenceManager.findSentencesByConversation(s.getConversation())
+						.ifPresent(sentences -> lines.add(0, Utility.patternProgress(" ", "¡", sentences.size(), sentences.stream().map(Sentence::getId).collect(Collectors.toList()).indexOf(s.getId()), ChatColor.GREEN)));
+					HologramsManager.updateHologram(Holograms.create(loc), s.getConversation(), lines, 20 * 10);
+					Utility.lookAt(player, loc.add(0, -1, 0));
+					PluginSound.ATTENTION.play(player);
+				})));
 	}
 
 	@EventHandler
@@ -53,11 +58,16 @@ public class PluginEvent implements Listener {
 
 		PlayerManager.update(PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId()));
 		SentenceManager.findSentencesByNPCId(npc.getId())
-			.ifPresent(sentences -> 
-				player.openInventory(
+			.map(sentences -> 
 					PluginGUI.createInventory(gui ->
 						gui.title(GUITitle.SENTENCE.getTitle())
-						.icons(GUIIcon.createItemStack(sentences)))));
+						.icons(GUIIcon.createItemStack(sentences))
+						.addLastRowIcons(GUIIcon.IconSet.CONVERSATION_SETTING.getIcons().stream().map(icon -> icon.createItemStack()).collect(Collectors.toList()))
+			))
+			.ifPresent(inv -> {
+				player.openInventory(inv);
+				PluginSound.CLICK.play(player);
+			});
 	}
 
 	@EventHandler

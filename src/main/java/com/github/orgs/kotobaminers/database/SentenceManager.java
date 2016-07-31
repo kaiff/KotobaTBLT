@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.BooleanUtils;
@@ -21,20 +22,48 @@ import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.Utility;
 
 public class SentenceManager extends DatabaseManager {
-	public synchronized static void importSentence(String name) {
-		String path = sentenceDir + "//" + name + ".csv";
-		File file = new File(path);
-		if(!file.exists()) {
-			Bukkit.getLogger().info(Message.INVALID.getMessage(Arrays.asList(path)));
-			return;
+	public synchronized static void update(Sentence sentence) {
+		String update = "";
+		if(sentence.getId() == null) {
+			update = "INSERT INTO " + sentenceTable + " "
+				+ "(npc, conversation, ordering, task, keyBool, japanese, english, owner) "
+				+ "VALUES "
+					+ "('" + sentence.getNPC() + "', '"
+					+ sentence.getConversation() + "', '"
+					+ sentence.getOrder() + "', '"
+					+ sentence.getTask() + "', '"
+					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', '"
+					+ sentence.getOwner().map(UUID::toString).orElse("") + "') ";
+		} else {
+			update = "INSERT INTO " + sentenceTable + " "
+				+ "(id, npc, conversation, ordering, task, keyBool, japanese, english, owner) "
+				+ "VALUES "
+					+ "('" + sentence.getId() + "', '"
+					+ sentence.getNPC() + "', '"
+					+ sentence.getConversation() + "', '"
+					+ sentence.getOrder() + "', '"
+					+ sentence.getTask() + "', '"
+					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', '"
+					+ sentence.getOwner().map(UUID::toString).orElse("") + "') "
+				+ "ON DUPLICATE KEY UPDATE "
+					+ "id = '" + sentence.getId() + "', "
+					+ "npc = '" + sentence.getNPC() + "', "
+					+ "conversation = '" + sentence.getConversation() + "', "
+					+ "ordering = '" + sentence.getOrder() + "', "
+					+ "task = '" + sentence.getTask() + "', "
+					+ "keyBool = '" + BooleanUtils.toInteger(sentence.getKey()) + "', "
+					+ "japanese = '" + sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', "
+					+ "english = '" + sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', "
+					+ "owner = '" + sentence.getOwner().map(UUID::toString).orElse("") + "';";
 		}
-		
 		try {
 			openConnection();
-			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentenceDir + "//" + name + ".csv \" REPLACE INTO TABLE " + sentenceTable + " FIELDS TERMINATED BY ',';";
 			statement = connection.createStatement();
-			statement.executeUpdate(importCsv);
-
+			statement.executeUpdate(update);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -46,7 +75,33 @@ public class SentenceManager extends DatabaseManager {
 			closeConnection();
 		}
 	}
-	
+
+	public synchronized static Optional<Sentence> find(int id) {
+		Optional<Sentence> sentence = Optional.empty();
+		String select = "SELECT * FROM " + sentenceTable + " WHERE id = '" + id + "' LIMIT 1;";
+		ResultSet result = null;
+		
+		try {
+			openConnection();
+			statement = connection.createStatement();
+			result = statement.executeQuery(select);
+			if(result.next()) {
+				sentence = Optional.ofNullable(Sentence.create(result));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(result != null) result.close();
+				if(statement != null) statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			closeConnection();
+		}
+		return sentence;
+	}
+
 	private synchronized static Optional<List<Sentence>> findSentencesByTask(String task) {
 		List<Sentence> list = new ArrayList<>();
 		ResultSet sentences = null;
@@ -149,88 +204,10 @@ public class SentenceManager extends DatabaseManager {
 		}
 	}
 	
-	public synchronized static Optional<Sentence> find(int id) {
-		Optional<Sentence> sentence = Optional.empty();
-		String select = "SELECT * FROM " + sentenceTable + " WHERE id = '" + id + "' LIMIT 1;";
-		ResultSet result = null;
-		
-		try {
-			openConnection();
-			statement = connection.createStatement();
-			result = statement.executeQuery(select);
-			if(result.next()) {
-				sentence = Optional.ofNullable(Sentence.create(result));
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if(result != null) result.close();
-				if(statement != null) statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			closeConnection();
-		}
-		return sentence;
-	}
-
-	public synchronized static void update(Sentence sentence) {
-		String update = "";
-		if(sentence.getId() == null) {
-			update = "INSERT INTO " + sentenceTable + " "
-				+ "(npc, conversation, ordering, task, keyBool, japanese, english) "
-				+ "VALUES "
-					+ "('" + sentence.getNPC() + "', '"
-					+ sentence.getConversation() + "', '"
-					+ sentence.getOrder() + "', '"
-					+ sentence.getTask() + "', '"
-					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "') ";
-		} else {
-			update = "INSERT INTO " + sentenceTable + " "
-				+ "(id, npc, conversation, ordering, task, keyBool, japanese, english) "
-				+ "VALUES "
-					+ "('" + sentence.getId() + "', '"
-					+ sentence.getNPC() + "', '"
-					+ sentence.getConversation() + "', '"
-					+ sentence.getOrder() + "', '"
-					+ sentence.getTask() + "', '"
-					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "') "
-				+ "ON DUPLICATE KEY UPDATE "
-					+ "id = '" + sentence.getId() + "', "
-					+ "npc = '" + sentence.getNPC() + "', "
-					+ "conversation = '" + sentence.getConversation() + "', "
-					+ "ordering = '" + sentence.getOrder() + "', "
-					+ "task = '" + sentence.getTask() + "', "
-					+ "keyBool = '" + BooleanUtils.toInteger(sentence.getKey()) + "', "
-					+ "japanese = '" + sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', "
-					+ "english = '" + sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "';";
-		}
-		try {
-			openConnection();
-			statement = connection.createStatement();
-			statement.executeUpdate(update);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if(statement != null) statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			closeConnection();
-		}
-	}
-	
-	
 	private synchronized static List<Sentence> initializeSentenceOrder(List<Sentence> sentences) {
 		for(int i = 0; i < sentences.size(); i++) {
 			if(PluginGUI.MAX_WIDTH <= i) break;
-			sentences.get(i).setOrder(i);
+			sentences.get(i).order(i);
 		}
 		return sentences;
 	}
@@ -239,8 +216,7 @@ public class SentenceManager extends DatabaseManager {
 		findSentencesByConversation(sentence.getConversation())
 			.filter(sentences -> sentence.getOrder() + position <= sentences.size() && sentences.size() < PluginGUI.MAX_WIDTH)
 			.map(sentences -> {
-				Sentence empty = Sentence.empty(sentence.getConversation(), sentence.getNPC());
-				empty.setTask(sentence.getTask());
+				Sentence empty = Sentence.empty(sentence.getConversation(), sentence.getNPC()).task(sentence.getTask()).owner(sentence.getOwner());
 				sentences.add(sentence.getOrder() + position, empty);
 				return initializeSentenceOrder(sentences);
 			})
@@ -350,9 +326,7 @@ public class SentenceManager extends DatabaseManager {
 		if(!tasks.contains(task.toUpperCase()) && !npcs.contains(npc) && Utility.findNPC(npc).isPresent()) {
 			return getAllConversations().stream().max(Comparator.naturalOrder())
 				.map(conversation -> {
-					Sentence sentence = Sentence.empty(conversation + 1, npc);
-					sentence.setTask(task);
-					update(sentence);
+					update(Sentence.empty(conversation + 1, npc).task(task));
 					return true;
 				})
 				.orElse(false);
@@ -368,9 +342,7 @@ public class SentenceManager extends DatabaseManager {
 		if(tasks.contains(task.toUpperCase()) && !npcs.contains(npc) && Utility.findNPC(npc).isPresent()) {
 			return getAllConversations().stream().max(Comparator.naturalOrder())
 				.map(conversation -> {
-					Sentence sentence = Sentence.empty(conversation + 1, npc);
-					sentence.setTask(task);
-					update(sentence);
+					update(Sentence.empty(conversation + 1, npc).task(task));
 					return true;
 				}).orElse(false);
 		}
@@ -385,11 +357,36 @@ public class SentenceManager extends DatabaseManager {
 			.map(s -> s.getNPC())
 			.collect(Collectors.toSet());
 		if((!npcs.contains(npc) && Utility.findNPC(npc).isPresent()) || thisNPCs.contains(npc)) {
-			sentence.setNPC(npc);
-			update(sentence);
+			update(sentence.npc(npc));
 			return true;
 		} else {
 			return false;
+		}
+	}
+
+	public synchronized static void importSentence(String name) {
+		String path = sentenceDir + "//" + name + ".csv";
+		File file = new File(path);
+		if(!file.exists()) {
+			Bukkit.getLogger().info(Message.INVALID.getMessageWithPrefix(Arrays.asList(path)));
+			return;
+		}
+		
+		try {
+			openConnection();
+			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentenceDir + "//" + name + ".csv \" REPLACE INTO TABLE " + sentenceTable + " FIELDS TERMINATED BY ',';";
+			statement = connection.createStatement();
+			statement.executeUpdate(importCsv);
+	
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(statement != null) statement.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			closeConnection();
 		}
 	}
 }

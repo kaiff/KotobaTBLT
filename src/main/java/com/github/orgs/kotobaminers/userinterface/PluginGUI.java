@@ -23,7 +23,6 @@ import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
 import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.Sentence;
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginCommand;
 import com.github.orgs.kotobaminers.database.SentenceManager;
 import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.PluginSound;
@@ -36,6 +35,9 @@ public class PluginGUI {
 	public enum GUIIcon {
 		ENGLISH(Material.WOOL, 3, "Enter English", null),
 		JAPANESE(Material.WOOL, 14, "Enter Japanese", null),
+		FREE_UP(Material.GLASS, 0, "Free up this Conversation", null),
+		CLAIM(Material.STAINED_GLASS, 1, "Claim this Conversation", null),
+		MY_SKIN(Material.GOLDEN_APPLE, 0, "Change the Skin to Me", null),
 
 		SENTENCE_SKELETON(Material.SKULL_ITEM, 0, "", null),
 		SENTENCE_WITHER(Material.SKULL_ITEM, 1, "", null),
@@ -152,12 +154,28 @@ public class PluginGUI {
 			if(event.getWhoClicked() instanceof Player) {
 				Player player = (Player) event.getWhoClicked();
 				switch(this) {
+				case FREE_UP:
+					SentenceManager.findSentencesByNPCId(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
+					.ifPresent(list -> list.forEach(s -> SentenceManager.update(s.owner(Optional.empty()))));
+				PluginSound.FORGE.play(player);
+					break;
+				case CLAIM:
+					SentenceManager.findSentencesByNPCId(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
+						.ifPresent(list -> list.forEach(s -> SentenceManager.update(s.owner(Optional.of(player.getUniqueId())))));
+					PluginSound.FORGE.play(player);
+					break;
+				case MY_SKIN:
+					Utility.findNPC(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
+						.ifPresent(npc -> Utility.renameNPCAsPlayer(npc, player.getName(), player.getUniqueId()));
+					PluginSound.POP_UP.play(player);
+					break;
+
 				case CHANGE_SPEAKER:
 					{
 						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
 						PlayerManager.update(data.editMode(EditMode.SPEAKER).edit(data.getSentence()));
 						PluginSound.CLICK.play(player);
-						player.sendMessage(Message.NONE.getMessage(Arrays.asList()) + "/tblt speaker <NPC ID>");
+						player.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList()) + "/tblt speaker <NPC ID>");
 					}
 					break;
 				case APPEND:
@@ -184,7 +202,7 @@ public class PluginGUI {
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
-										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.ENGLISH))));
+										player.sendMessage(Message.EDIT_SENTENCE.getMessageWithPrefix(s.getLines(Arrays.asList(Expression.ENGLISH))));
 										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.ENGLISH));
 									}));	
 					}
@@ -197,7 +215,7 @@ public class PluginGUI {
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
-										player.sendMessage(Message.EDIT_SENTENCE.getMessage(s.getLines(Arrays.asList(Expression.JAPANESE))));
+										player.sendMessage(Message.EDIT_SENTENCE.getMessageWithPrefix(s.getLines(Arrays.asList(Expression.JAPANESE))));
 										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.JAPANESE));
 									}));	
 					}
@@ -225,8 +243,9 @@ public class PluginGUI {
 			}
 		}
 		
-		enum IconSet {
+		public enum IconSet {
 			EDIT_CONVERSATION(Arrays.asList(CHANGE_SPEAKER, PREPEND, APPEND, DELETE)),
+			CONVERSATION_SETTING(Arrays.asList(FREE_UP, CLAIM, MY_SKIN)),
 			;
 			private final List<GUIIcon> set;
 			private IconSet(List<GUIIcon> set) {
@@ -268,6 +287,20 @@ public class PluginGUI {
 	}
 	public PluginGUI icons(List<ItemStack> icons) {
 		this.icons = icons;
+		return this;
+	}
+	public PluginGUI addLastRowIcons(List<ItemStack> last) {
+		if(icons.size() < MAX_SIZE - MAX_WIDTH) {
+			for(int i = icons.size(); i < MAX_SIZE - MAX_WIDTH; i++) {
+				icons.add(GUIIcon.NONE.createItemStack());
+			}
+			for(int i = 0; i < MAX_WIDTH; i++) {
+				if(last.size() <= i) {
+					break;
+				}
+				icons.add(last.get(i));
+			}
+		}
 		return this;
 	}
 

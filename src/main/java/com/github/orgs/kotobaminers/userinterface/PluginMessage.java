@@ -26,13 +26,12 @@ public class PluginMessage {
 		
 		public String getMessage(List<String> args) {
 			if(args == null) {
-				return prefix + " " + String.join("", base);
+				return String.join("", base);
 			}
 			if(base.size() < args.size()) {
 				return prefix + " " + TOO_MANY_ARGS;
 			} 
 			List<String> parts = new ArrayList<>();
-			parts.add(prefix + " ");
 			for(int i = 0; i < args.size(); i++) {
 				parts.add(base.get(i));
 				parts.add(args.get(i));
@@ -41,6 +40,9 @@ public class PluginMessage {
 				parts.add(base.get(i));
 			}
 			return String.join("", parts);
+		}
+		public String getMessageWithPrefix(List<String> args) {
+			return prefix + " " + getMessage(args);
 		}
 	}
 }

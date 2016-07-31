@@ -14,7 +14,7 @@ import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
 public class Holograms {
 	double height = 1.4;
 	Location loc = null;
-	ArrayList<ArmorStand> holos = new ArrayList<ArmorStand>();
+	List<ArmorStand> holos = new ArrayList<ArmorStand>();
 	public BukkitTask task = null;
 	
 	private Holograms() {
@@ -31,13 +31,16 @@ public class Holograms {
 			cancelTask();
 			this.loc.setY((this.loc.getY() + this.height) - 1.25);
 			for(int i = lines.size(); 0 < i; i--) {
+				for(int j = 0; j < 3; j++) {//TODO
 				final ArmorStand hologram =
 						(ArmorStand) this.loc.getWorld().spawnEntity(this.loc, EntityType.ARMOR_STAND);
-				holos.add(hologram);
+				hologram.setVisible(false);
+				hologram.setGravity(false);
 				hologram.setCustomName(new String(lines.get(i-1)));
 				hologram.setCustomNameVisible(true);
-				hologram.setGravity(false);
-				hologram.setVisible(false);
+				holos.add(hologram);
+				}
+
 				this.loc.setY(this.loc.getY() + 0.25);
 			}
 			task = Bukkit.getScheduler().runTaskLater(PluginManager.getPlugin(), new Runnable() {
