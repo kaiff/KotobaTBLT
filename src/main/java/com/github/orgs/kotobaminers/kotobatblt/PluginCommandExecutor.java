@@ -34,7 +34,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 
 	public enum PluginCommand {
 		TBLT(Arrays.asList("TBLT"), Arrays.asList(), null, PluginPermission.PLAYER, "Root Commands"),
-		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.OP, "Edit a Sentence"),
+		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.PLAYER, "Edit a Sentence"),
 		CHANGE_SPEAKER(Arrays.asList("SPEAKER", "S"), Arrays.asList("<NPC ID>"), TBLT, PluginPermission.OP, "Change a Speaker"),
 
 		OP(Arrays.asList("OP"), Arrays.asList(), TBLT, PluginPermission.OP, "Operator's Commands"),
@@ -95,7 +95,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 		}
 
 		private boolean hasPermission(Player player) {
-			return PluginPermission.hasPermission(permission, player);
+			return PluginPermission.hasPermission(permission, player.getUniqueId());
 		}
 		
 		private static List<PluginCommand> findCommands(Command command, String[] args) {
@@ -128,7 +128,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 				.collect(Collectors.toList());
 		}
 		
-		private String getUsage() {
+		public String getUsage() {
 			String title = String.join(" ", this.getCommandTree().stream()
 				.map(com -> com.names.get(0).toLowerCase())
 				.collect(Collectors.toList()));
@@ -175,7 +175,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 						PluginSound.FORGE.play(player);
 						player.sendMessage(Message.SUCCESS.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					} else {
-						PluginSound.BAD.play(player);
+						PluginSound.FAILED.play(player);
 						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					}
 					return true;
@@ -193,7 +193,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 						PluginSound.FORGE.play(player);
 						player.sendMessage(Message.SUCCESS.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					} else {
-						PluginSound.BAD.play(player);
+						PluginSound.FAILED.play(player);
 						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList(opts.get(0) + ", NPC: " + npc)));
 					}
 					return true;
@@ -236,7 +236,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 						PluginSound.FORGE.play(player);
 					} else {
 						player.sendMessage(Message.INVALID.getMessageWithPrefix(Arrays.asList()));
-						PluginSound.BAD.play(player);
+						PluginSound.FAILED.play(player);
 					}
 					return true;
 				} catch(NumberFormatException e) {

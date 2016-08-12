@@ -35,7 +35,7 @@ public class PluginEvent implements Listener {
 		NPC npc = event.getNPC();
 		Player player = event.getClicker();
 
-		List<Expression> expressions = Arrays.asList(Expression.JAPANESE, Expression.ENGLISH);
+		List<Expression> expressions = Arrays.asList(Expression.ENGLISH, Expression.JAPANESE);
 
 		PlayerData data = PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId());
 		PlayerManager.updateDisplay(data, npc.getId())

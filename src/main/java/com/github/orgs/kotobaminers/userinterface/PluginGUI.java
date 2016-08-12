@@ -24,6 +24,7 @@ import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.Sentence;
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
 import com.github.orgs.kotobaminers.database.SentenceManager;
+import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginCommand;
 import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.PluginSound;
 import com.github.orgs.kotobaminers.utility.Utility;
@@ -156,13 +157,27 @@ public class PluginGUI {
 				switch(this) {
 				case FREE_UP:
 					SentenceManager.findSentencesByNPCId(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
-					.ifPresent(list -> list.forEach(s -> SentenceManager.update(s.owner(Optional.empty()))));
-				PluginSound.FORGE.play(player);
+						.ifPresent(sentences -> {
+							if(sentences.stream().allMatch(s -> s.canEdit(player.getUniqueId()))) {
+								sentences.stream().forEach(s -> SentenceManager.update(s.owner(Optional.empty())));
+								PluginSound.FORGE.play(player);
+							} else {
+								player.sendMessage(Message.NO_PERMISSION.getMessageWithPrefix(null));
+								PluginSound.FAILED.play(player);
+							}}
+					);
 					break;
 				case CLAIM:
 					SentenceManager.findSentencesByNPCId(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
-						.ifPresent(list -> list.forEach(s -> SentenceManager.update(s.owner(Optional.of(player.getUniqueId())))));
-					PluginSound.FORGE.play(player);
+						.ifPresent(sentences -> {
+							if(sentences.stream().allMatch(s -> s.canEdit(player.getUniqueId()))) {
+								sentences.stream().forEach(s -> SentenceManager.update(s.owner(Optional.of(player.getUniqueId()))));
+								PluginSound.FORGE.play(player);
+							} else {
+								player.sendMessage(Message.NO_PERMISSION.getMessageWithPrefix(null));
+								PluginSound.FAILED.play(player);
+							}}
+					);
 					break;
 				case MY_SKIN:
 					Utility.findNPC(PlayerManager.getOrDefault(player.getUniqueId()).getNPC())
@@ -196,28 +211,40 @@ public class PluginGUI {
 
 				case ENGLISH: 
 					{
-						PluginSound.CLICK.play(player);
 						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
 						PlayerManager.updateSentenceByInventory(data, calculateColumn(event.getRawSlot()))
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
-										player.sendMessage(Message.EDIT_SENTENCE.getMessageWithPrefix(s.getLines(Arrays.asList(Expression.ENGLISH))));
-										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.ENGLISH));
-									}));	
+										if(s.canEdit(player.getUniqueId())) {
+											PluginSound.CLICK.play(player);
+											player.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList(PluginCommand.EDIT.getUsage())));
+											player.sendMessage(Message.NONE.getMessage(Arrays.asList(s.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + " => ")));
+											PlayerManager.update(data.edit(s.getId()).editMode(EditMode.ENGLISH));
+											return;
+										}
+										PluginSound.FAILED.play(player);
+										player.sendMessage(Message.NO_PERMISSION.getMessageWithPrefix(null));
+							}));
 					}
 					break;
 				case JAPANESE:
 					{
-						PluginSound.CLICK.play(player);
 						PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
 						PlayerManager.updateSentenceByInventory(data, calculateColumn(event.getRawSlot()))
 							.ifPresent(d ->
 								SentenceManager.find(d.getSentence())
 									.ifPresent(s -> {
-										player.sendMessage(Message.EDIT_SENTENCE.getMessageWithPrefix(s.getLines(Arrays.asList(Expression.JAPANESE))));
-										PlayerManager.update(data.edit(data.getSentence()).editMode(EditMode.JAPANESE));
-									}));	
+										if(s.canEdit(player.getUniqueId())) {
+											PluginSound.CLICK.play(player);
+											player.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList(PluginCommand.EDIT.getUsage())));
+											player.sendMessage(Message.NONE.getMessage(Arrays.asList(s.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + " => ")));
+											PlayerManager.update(data.edit(s.getId()).editMode(EditMode.JAPANESE));
+											return;
+										}
+										PluginSound.FAILED.play(player);
+										player.sendMessage(Message.NO_PERMISSION.getMessageWithPrefix(null));
+							}));
 					}
 					break;
 				case SENTENCE_PLAYER:
@@ -257,9 +284,6 @@ public class PluginGUI {
 		}
 	}
 	
-	public static final int MAX_WIDTH = 9;
-	private static final int MAX_SIZE = 54;
-	
 	public enum GUITitle {
 		SENTENCE(ChatColor.BOLD + "Sentence"),
 		EDIT_SENTENCE(ChatColor.BOLD + "Edit Sentence"),
@@ -279,7 +303,9 @@ public class PluginGUI {
 
 	private String title;
 	private List<ItemStack> icons;
-	private int size = 54;
+	private int size = 45;
+	public static final int MAX_WIDTH = 9;
+	private static final int MAX_SIZE = 45;
 
 	public PluginGUI title(String title) {
 		this.title = title;

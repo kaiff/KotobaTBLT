@@ -85,8 +85,8 @@ public class PlayerData {
 		EXAMINEE,
 		PLAYER,;
 		
-		public static boolean hasPermission(PluginPermission permission, Player player) {
-			PluginPermission playerPermission = PlayerManager.getOrDefault(player.getUniqueId()).getPermission();
+		public static boolean hasPermission(PluginPermission permission, UUID uuid) {
+			PluginPermission playerPermission = PlayerManager.getOrDefault(uuid).getPermission();
 			switch (playerPermission) {
 			case DEVELOPER:
 				return true;

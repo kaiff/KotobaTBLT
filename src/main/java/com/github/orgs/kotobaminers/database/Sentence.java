@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
 
 public class Sentence {
 	private static final String JAPANESE_INI = "Enter Japanese";
@@ -152,6 +153,18 @@ public class Sentence {
 		}
 		return this;
 	}
+	
+	public boolean canEdit(UUID editor) {
+		if(PluginPermission.hasPermission(PluginPermission.OP, editor)) {
+			return true;
+		} else if(!owner.isPresent()) {
+			return true;
+		} else if(owner.get().equals(editor)){
+			return true;
+		}
+		return false;
+	}
+	
 
 	@Override
 	public String toString() {
