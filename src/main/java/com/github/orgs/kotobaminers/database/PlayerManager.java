@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.BooleanUtils;
+
 import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
 import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
 
@@ -28,6 +30,8 @@ public class PlayerManager extends DatabaseManager {
 				final int edit = result.getInt("edit");
 				final EditMode mode = EditMode.valueOf(result.getString("editMode"));
 				final PluginPermission permission = PluginPermission.valueOf(result.getString("permission"));
+				final boolean english = result.getBoolean("english");
+				final boolean kanji = result.getBoolean("kanji");
 				data = PlayerData.create(d ->
 				d.uuid(uuid)
 				.npc(npc)
@@ -35,7 +39,10 @@ public class PlayerManager extends DatabaseManager {
 				.display(display)
 				.edit(edit)
 				.editMode(mode)
-				.permission(permission));
+				.permission(permission)
+				.english(english)
+				.kanji(kanji)
+				);
 			}
 			update(data);
 			
@@ -55,7 +62,7 @@ public class PlayerManager extends DatabaseManager {
 
 	public synchronized static void update(PlayerData data) {
 		String update = "INSERT INTO " + playerTable + " "
-			+ "(uuid, npc, sentence, display, edit, editMode, permission)"
+			+ "(uuid, npc, sentence, display, edit, editMode, permission, english, kanji)"
 			+ " VALUES"
 				+ " ('" + data.getUuid().toString() + "', '"
 				+ data.getNPC() + "', '"
@@ -63,7 +70,10 @@ public class PlayerManager extends DatabaseManager {
 				+ data.getDisplay() + "', '"
 				+ data.findEdit().orElse(0) + "', '"
 				+ data.getEditMode().name() + "', '"
-				+ data.getPermission().name() + "') "
+				+ data.getPermission().name() + "', '"
+				+ BooleanUtils.toInteger(data.getEnglish()) + "', '"
+				+ BooleanUtils.toInteger(data.getKanji()) +
+				"') "
 			+ "ON DUPLICATE KEY UPDATE "
 				+ "uuid = '" + data.getUuid().toString() + "', "
 				+ "npc = '" + data.getNPC() + "', "
@@ -71,7 +81,9 @@ public class PlayerManager extends DatabaseManager {
 				+ "display = '" + data.getDisplay() + "', "
 				+ "edit = '" + data.findEdit().orElse(0) + "', "
 				+ "editMode = '" + data.getEditMode().name() + "', "
-				+ "permission = '" + data.getPermission().name() + "';";
+				+ "permission = '" + data.getPermission().name() + "', "
+				+ "english = '" + BooleanUtils.toInteger(data.getEnglish()) + "', "
+				+ "kanji = '" + BooleanUtils.toInteger(data.getKanji()) + "';";
 		try {
 			openConnection();
 			statement = connection.createStatement();

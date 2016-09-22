@@ -1,6 +1,5 @@
 package com.github.orgs.kotobaminers.database;
 
-import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -14,11 +13,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang.BooleanUtils;
-import org.bukkit.Bukkit;
 
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI;
-import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.Utility;
 
 public class SentenceManager extends DatabaseManager {
@@ -33,8 +30,8 @@ public class SentenceManager extends DatabaseManager {
 					+ sentence.getOrder() + "', '"
 					+ sentence.getTask() + "', '"
 					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.KANJI)).get(0).replace("'", "''") + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0).replace("'", "''") + "', '"
 					+ sentence.getOwner().map(UUID::toString).orElse("") + "') ";
 		} else {
 			update = "INSERT INTO " + sentenceTable + " "
@@ -46,8 +43,8 @@ public class SentenceManager extends DatabaseManager {
 					+ sentence.getOrder() + "', '"
 					+ sentence.getTask() + "', '"
 					+ BooleanUtils.toInteger(sentence.getKey()) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', '"
-					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.KANJI)).get(0).replace("'", "''") + "', '"
+					+ sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0).replace("'", "''") + "', '"
 					+ sentence.getOwner().map(UUID::toString).orElse("") + "') "
 				+ "ON DUPLICATE KEY UPDATE "
 					+ "id = '" + sentence.getId() + "', "
@@ -56,8 +53,8 @@ public class SentenceManager extends DatabaseManager {
 					+ "ordering = '" + sentence.getOrder() + "', "
 					+ "task = '" + sentence.getTask() + "', "
 					+ "keyBool = '" + BooleanUtils.toInteger(sentence.getKey()) + "', "
-					+ "japanese = '" + sentence.getLines(Arrays.asList(Expression.JAPANESE)).get(0) + "', "
-					+ "english = '" + sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0) + "', "
+					+ "japanese = '" + sentence.getLines(Arrays.asList(Expression.KANJI)).get(0).replace("'", "''") + "', "
+					+ "english = '" + sentence.getLines(Arrays.asList(Expression.ENGLISH)).get(0).replace("'", "''") + "', "
 					+ "owner = '" + sentence.getOwner().map(UUID::toString).orElse("") + "';";
 		}
 		try {
@@ -364,29 +361,29 @@ public class SentenceManager extends DatabaseManager {
 		}
 	}
 
-	public synchronized static void importSentence(String name) {
-		String path = sentenceDir + "//" + name + ".csv";
-		File file = new File(path);
-		if(!file.exists()) {
-			Bukkit.getLogger().info(Message.INVALID.getMessageWithPrefix(Arrays.asList(path)));
-			return;
-		}
-		
-		try {
-			openConnection();
-			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentenceDir + "//" + name + ".csv \" REPLACE INTO TABLE " + sentenceTable + " FIELDS TERMINATED BY ',';";
-			statement = connection.createStatement();
-			statement.executeUpdate(importCsv);
-	
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			try {
-				if(statement != null) statement.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-			closeConnection();
-		}
-	}
+//	public synchronized static void importSentence(String name) {
+//		String path = sentenceDir + "//" + name + ".csv";
+//		File file = new File(path);
+//		if(!file.exists()) {
+//			Bukkit.getLogger().info(Message.INVALID.getMessageWithPrefix(Arrays.asList(path)));
+//			return;
+//		}
+//		
+//		try {
+//			openConnection();
+//			String importCsv = "LOAD DATA LOCAL INFILE \"" + sentenceDir + "//" + name + ".csv \" REPLACE INTO TABLE " + sentenceTable + " FIELDS TERMINATED BY ',';";
+//			statement = connection.createStatement();
+//			statement.executeUpdate(importCsv);
+//	
+//		} catch (SQLException e) {
+//			e.printStackTrace();
+//		} finally {
+//			try {
+//				if(statement != null) statement.close();
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//			}
+//			closeConnection();
+//		}
+//	}
 }

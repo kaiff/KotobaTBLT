@@ -1,6 +1,5 @@
 package com.github.orgs.kotobaminers.kotobatblt;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -8,6 +7,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import com.github.orgs.kotobaminers.database.PlayerData;
@@ -15,11 +15,11 @@ import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.Sentence;
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
 import com.github.orgs.kotobaminers.database.SentenceManager;
+import com.github.orgs.kotobaminers.userinterface.GUIIcon;
 import com.github.orgs.kotobaminers.userinterface.Holograms;
 import com.github.orgs.kotobaminers.userinterface.HologramsManager;
 import com.github.orgs.kotobaminers.userinterface.NPCManager;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUIIcon;
 import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUITitle;
 import com.github.orgs.kotobaminers.utility.PluginSound;
 import com.github.orgs.kotobaminers.utility.Utility;
@@ -35,9 +35,9 @@ public class PluginEvent implements Listener {
 		NPC npc = event.getNPC();
 		Player player = event.getClicker();
 
-		List<Expression> expressions = Arrays.asList(Expression.ENGLISH, Expression.JAPANESE);
-
 		PlayerData data = PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId());
+		List<Expression> expressions = data.getExpressions();
+
 		PlayerManager.updateDisplay(data, npc.getId())
 			.ifPresent(d ->SentenceManager.find(d.getDisplay())
 			.ifPresent(s ->NPCManager.findNPC(s.getNPC()).map(n -> n.getStoredLocation())
@@ -59,10 +59,10 @@ public class PluginEvent implements Listener {
 		PlayerManager.update(PlayerManager.getOrDefault(player.getUniqueId()).npc(npc.getId()));
 		SentenceManager.findSentencesByNPCId(npc.getId())
 			.map(sentences -> 
-					PluginGUI.createInventory(gui ->
-						gui.title(GUITitle.SENTENCE.getTitle())
-						.icons(GUIIcon.createItemStack(sentences))
-						.addLastRowIcons(GUIIcon.IconSet.CONVERSATION_SETTING.getIcons().stream().map(icon -> icon.createItemStack()).collect(Collectors.toList()))
+				PluginGUI.createInventory(gui ->
+					gui.title(GUITitle.SENTENCE.getTitle())
+					.icons(GUIIcon.createConversationSet(sentences))
+					.addLastRowIcons(GUIIcon.IconSet.CONVERSATION_SETTING.getIcons().stream().map(icon -> icon.createItemStack()).collect(Collectors.toList()))
 			))
 			.ifPresent(inv -> {
 				player.openInventory(inv);
@@ -72,13 +72,16 @@ public class PluginEvent implements Listener {
 
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
-		if (!PluginGUI.isPluginGUI(event.getInventory()) || !PluginGUI.isValidSlot(event)) {
+		if (!PluginGUI.isPluginGUI(event.getInventory())) {
 			return;
 		}
-		event.setCancelled(true);
-		event.getWhoClicked().closeInventory();
+		
+		if(!PluginGUI.isValidSlot(event) || event.getAction() == InventoryAction.NOTHING) {
+			event.setCancelled(true);
+			return;
+		} 
 
 		GUIIcon.findGUIIcon(event.getCurrentItem())
-			.ifPresent(icon -> icon.executeClickEvent(event));
+			.ifPresent(icon -> 	icon.executeClickEvent(event));
 	}
 }

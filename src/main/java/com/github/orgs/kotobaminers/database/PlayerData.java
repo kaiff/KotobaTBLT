@@ -1,10 +1,13 @@
 package com.github.orgs.kotobaminers.database;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import org.bukkit.entity.Player;
+import com.github.orgs.kotobaminers.database.Sentence.Expression;
 
 public class PlayerData {
 	private UUID uuid = null;
@@ -14,6 +17,8 @@ public class PlayerData {
 	private Optional<Integer> edit = Optional.empty();
 	private EditMode mode = EditMode.NONE;
 	private PluginPermission permission = PluginPermission.PLAYER;
+	private boolean english = true;
+	private boolean kanji = false;
 	
 	private PlayerData() {
 	}
@@ -56,6 +61,14 @@ public class PlayerData {
 		this.permission = permission;
 		return this;
 	}
+	public PlayerData english(boolean english) {
+		this.english = english;
+		return this;
+	}
+	public PlayerData kanji(boolean kanji) {
+		this.kanji = kanji;
+		return this;
+	}
 	
 	public UUID getUuid() {
 		return uuid;
@@ -77,6 +90,25 @@ public class PlayerData {
 	}
 	public PluginPermission getPermission() {
 		return permission;
+	}
+	public List<Expression> getExpressions() {
+		List<Expression> expressions = new ArrayList<>();
+		if(english) {
+			expressions.add(Expression.ENGLISH);
+		}
+		if(kanji) {
+			expressions.add(Expression.KANJI);
+		}
+		if(expressions.size() < 1) {
+			expressions = Arrays.asList(Expression.ENGLISH);
+		}
+		return expressions;
+	}
+	public boolean getEnglish() {
+		return english;
+	}
+	public boolean getKanji() {
+		return kanji;
 	}
 	
 	public enum PluginPermission{
@@ -121,7 +153,7 @@ public class PlayerData {
 	}
 	
 	public enum EditMode {
-		JAPANESE,
+		KANJI,
 		ENGLISH,
 		SPEAKER,
 		SKIN,

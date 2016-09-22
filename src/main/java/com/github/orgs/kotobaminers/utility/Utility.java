@@ -4,25 +4,41 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.SkullType;
+import org.bukkit.World;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import net.citizensnpcs.api.CitizensAPI;
 import net.citizensnpcs.api.npc.MetadataStore;
 import net.citizensnpcs.api.npc.NPC;
-import net.citizensnpcs.npc.skin.Skin;
 
 public class Utility {
+	public static void shootFirework(World world, Location location) {
+		Firework fw = (Firework) world.spawn(location, Firework.class);
+		FireworkMeta fwm = fw.getFireworkMeta();
+		Random random = new Random();
+		FireworkEffect effect = FireworkEffect.builder().flicker(random.nextBoolean()).withColor(Color.GREEN).withFade(Color.AQUA).with(Type.BALL_LARGE).trail(random.nextBoolean()).build();
+		fwm.addEffect(effect);
+		fwm.setPower(0);
+		fw.setFireworkMeta(fwm);
+	}
+
 	private static final List<String> skinMeta = Arrays.asList(
 		"cached-skin-uuid-name",
 		"player-skin-textures",

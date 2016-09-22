@@ -20,6 +20,9 @@ import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
 import com.github.orgs.kotobaminers.database.Sentence.Expression;
 import com.github.orgs.kotobaminers.database.PlayerManager;
 import com.github.orgs.kotobaminers.database.SentenceManager;
+import com.github.orgs.kotobaminers.userinterface.GUIIcon;
+import com.github.orgs.kotobaminers.userinterface.PluginGUI;
+import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUITitle;
 import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
 import com.github.orgs.kotobaminers.utility.PluginSound;
 
@@ -34,11 +37,18 @@ public class PluginCommandExecutor implements CommandExecutor {
 
 	public enum PluginCommand {
 		TBLT(Arrays.asList("TBLT"), Arrays.asList(), null, PluginPermission.PLAYER, "Root Commands"),
+		CONFIG(Arrays.asList("CONFIG"), Arrays.asList(), TBLT, PluginPermission.PLAYER, "Config Commands"),
+		ENGLISH(Arrays.asList("ENGLISH"), Arrays.asList(), CONFIG, PluginPermission.PLAYER, "Toggle Display English"),
+		KANJI(Arrays.asList("KANJI"), Arrays.asList(), CONFIG, PluginPermission.PLAYER, "Toggle Display Kanji"),
+		
 		EDIT(Arrays.asList("EDIT", "E"), Arrays.asList("<sentence>"), TBLT, PluginPermission.PLAYER, "Edit a Sentence"),
 		CHANGE_SPEAKER(Arrays.asList("SPEAKER", "S"), Arrays.asList("<NPC ID>"), TBLT, PluginPermission.OP, "Change a Speaker"),
 
+		QUIZ(Arrays.asList("QUIZ", "QUESTION", "Q"), Arrays.asList(), TBLT, PluginPermission.PLAYER, "Quiz Commands"),
+		SORT_QUIZ(Arrays.asList("SORT", "S"), Arrays.asList("Conversation ID"), QUIZ, PluginPermission.PLAYER, "Sort Quiz"),
+
 		OP(Arrays.asList("OP"), Arrays.asList(), TBLT, PluginPermission.OP, "Operator's Commands"),
-		LOAD(Arrays.asList("LOAD", "L"), Arrays.asList("<file>"), OP, PluginPermission.OP, "Load A Sentence File"),
+//		LOAD(Arrays.asList("LOAD", "L"), Arrays.asList("<file>"), OP, PluginPermission.OP, "Load A Sentence File"),
 		RELOAD(Arrays.asList("RELOAD", "R"), Arrays.asList(), OP, PluginPermission.OP, "Reload KotobaTBLT Plugin"),
 
 		TASK(Arrays.asList("TASK", "T"), Arrays.asList(), TBLT, PluginPermission.EXAMINEE, "Task Commands"),
@@ -50,7 +60,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 
 		DEVELOP(Arrays.asList("DEVELOP", "DEV"), Arrays.asList(), TBLT, PluginPermission.DEVELOPER, "Developper's Commands"),
 		TEST(Arrays.asList("TEST"), Arrays.asList("args"), DEVELOP, PluginPermission.DEVELOPER, "Tests for Development"),
-		DATABASE(Arrays.asList("DATABASE, DB"), Arrays.asList(), DEVELOP, PluginPermission.DEVELOPER, "Database Commands"),
+		DATABASE(Arrays.asList("DATABASE", "DB"), Arrays.asList(), DEVELOP, PluginPermission.DEVELOPER, "Database Commands"),
 		UPDATE(Arrays.asList("UPDATE", "U"), Arrays.asList("<file>"), DATABASE, PluginPermission.DEVELOPER, "Execute Query for MySQL");
 		
 		private List<String> names;
@@ -129,10 +139,20 @@ public class PluginCommandExecutor implements CommandExecutor {
 		}
 		
 		public String getUsage() {
-			String title = String.join(" ", this.getCommandTree().stream()
+			List<String> names = this.getCommandTree().stream()
 				.map(com -> com.names.get(0).toLowerCase())
-				.collect(Collectors.toList()));
-			return "/" + title + " " + String.join(" ", examples) + " : " + usage;
+				.collect(Collectors.toList());
+			names.set(0, "/" + ChatColor.GOLD + ChatColor.BOLD + names.get(0));
+			if(1 < names.size()) {
+				names.set(1, ChatColor.YELLOW + names.get(1));
+			}
+			if(2 < names.size()) {
+				names.set(2, ChatColor.RESET + names.get(2));
+			} else {
+				names.set(names.size() - 1, names.get(names.size() - 1) + ChatColor.RESET);
+			}
+			names.addAll(examples);
+			return String.join(" ", names) + ChatColor.GOLD + " : " + ChatColor.RESET + usage;
 		}
 	}
 	
@@ -163,6 +183,38 @@ public class PluginCommandExecutor implements CommandExecutor {
 		List<String> opts = selected.takeArguments(args);
 
 		switch(selected) {
+		case ENGLISH:
+			{
+				PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+				PlayerManager.update(data.english(!data.getEnglish()));
+			}
+			return true;
+		case KANJI:
+			{
+				PlayerData data = PlayerManager.getOrDefault(player.getUniqueId());
+				PlayerManager.update(data.kanji(!data.getKanji()));
+			}
+			return true;
+		case SORT_QUIZ:
+			if(0 < opts.size()) {
+				try {
+					int npc = Integer.valueOf(opts.get(0));
+					Player player2 = player;
+					PlayerManager.update(PlayerManager.getOrDefault(player.getUniqueId()).npc(npc));
+					SentenceManager.findSentencesByNPCId(npc)
+						.flatMap(GUIIcon::tryCreateSortQuizSet)
+						.map(icons ->
+							PluginGUI.createInventory(gui ->
+								gui.title(GUITitle.SORT_QUIZ.getTitle())
+									.icons(icons)))
+						.ifPresent(inv -> player2.openInventory(inv));
+					return true;
+				} catch(NumberFormatException e) {
+					e.printStackTrace();
+				}
+			}
+			break;
+		
 		case LIST_TASK:
 			player.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList("Task: " + String.join(", ", SentenceManager.getAllTask()))));
 			return true;
@@ -214,7 +266,7 @@ public class PluginCommandExecutor implements CommandExecutor {
 							SentenceManager.update(sentence.edit(edit, data.getEditMode()));
 							p.sendMessage(Message.NONE.getMessageWithPrefix(Arrays.asList("Edited")));
 							p.sendMessage("" + ChatColor.AQUA + ChatColor.BOLD + " EN: " + ChatColor.RESET + Message.NONE.getMessage(sentence.getLines(Arrays.asList(Expression.ENGLISH))));
-							p.sendMessage("" + ChatColor.RED + ChatColor.BOLD + " JP: " + ChatColor.RESET + Message.NONE.getMessage(sentence.getLines(Arrays.asList(Expression.JAPANESE))));
+							p.sendMessage("" + ChatColor.RED + ChatColor.BOLD + " JP: " + ChatColor.RESET + Message.NONE.getMessage(sentence.getLines(Arrays.asList(Expression.KANJI))));
 							PluginSound.FORGE.play(p);
 						}));
 				return true;
@@ -244,12 +296,12 @@ public class PluginCommandExecutor implements CommandExecutor {
 				}
 			}
 			break;
-		case LOAD:
-			if(0 < opts.size()) {
-				SentenceManager.importSentence(opts.get(0));
-				return true;
-			}
-			break;
+//		case LOAD:
+//			if(0 < opts.size()) {
+//				SentenceManager.importSentence(opts.get(0));
+//				return true;
+//			}
+//			break;
 		case RELOAD:
 			PluginManager.initialize(plugin);
 			return true;

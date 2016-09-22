@@ -16,6 +16,8 @@ public class PluginMessage {
 		INVALID(Arrays.asList("Invalid: ")),
 		EDIT_SENTENCE(Arrays.asList("Edit the Sentence: ")),
 		SUCCESS(Arrays.asList("Success: ")),
+		CORRECT(Arrays.asList("Correct: ")),
+		WRONG(Arrays.asList("Wrong: ")),
 		NONE(Arrays.asList("")),
 		;
 		

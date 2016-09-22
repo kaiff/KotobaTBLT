@@ -27,7 +27,7 @@ public class Sentence {
 	private Map<Expression, String> lines = new HashMap<>();
 	private Optional<UUID> owner = Optional.empty();
 	
-	public enum Expression {JAPANESE, ENGLISH}
+	public enum Expression {KANJI, ENGLISH}
 	
 	private Sentence() {
 	}
@@ -62,7 +62,7 @@ public class Sentence {
 		return this;
 	}
 	public Sentence japanese(String japanese) {
-		this.lines.put(Expression.JAPANESE, japanese);
+		this.lines.put(Expression.KANJI, japanese);
 		return this;
 	}
 	public Sentence english(String english) {
@@ -143,8 +143,8 @@ public class Sentence {
 		case ENGLISH:
 			lines.put(Expression.ENGLISH, sentence);
 			break;
-		case JAPANESE:
-			lines.put(Expression.JAPANESE, sentence);
+		case KANJI:
+			lines.put(Expression.KANJI, sentence);
 			break;
 		case NONE:
 		case SPEAKER:
@@ -168,6 +168,6 @@ public class Sentence {
 
 	@Override
 	public String toString() {
-		return "Cnv: " + conversation + ", NPC: " + npc + ", Tsk: " + task + ", Jp: " + lines.get(Expression.JAPANESE) + ", En: " + lines.get(Expression.ENGLISH);
+		return "Cnv: " + conversation + ", NPC: " + npc + ", Tsk: " + task + ", Jp: " + lines.get(Expression.KANJI) + ", En: " + lines.get(Expression.ENGLISH);
 	}
 }
