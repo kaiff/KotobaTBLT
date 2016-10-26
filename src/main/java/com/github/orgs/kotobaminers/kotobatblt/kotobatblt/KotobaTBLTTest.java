@@ -1,8 +1,8 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.kotobatblt.kotobatblt;
 
 import org.bukkit.entity.Player;
 
-import com.github.orgs.kotobaminers.userinterface.HologramsManager;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.HologramsManager;
 
 public class KotobaTBLTTest {
 	private KotobaTBLTTest() {

@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.database;
+package com.github.orgs.kotobaminers.kotobatblt.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.BooleanUtils;
 
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI;
-import com.github.orgs.kotobaminers.utility.Utility;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginGUI;
+import com.github.orgs.kotobaminers.kotobatblt.utility.Utility;
 
 public class SentenceManager extends DatabaseManager {
 	public synchronized static void update(Sentence sentence) {

@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.kotobatblt.kotobatblt;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,19 +12,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import com.github.orgs.kotobaminers.database.DatabaseManager;
-import com.github.orgs.kotobaminers.database.ExternalQuery;
-import com.github.orgs.kotobaminers.database.PlayerData;
-import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
-import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.database.PlayerManager;
-import com.github.orgs.kotobaminers.database.SentenceManager;
-import com.github.orgs.kotobaminers.userinterface.GUIIcon;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUITitle;
-import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
-import com.github.orgs.kotobaminers.utility.PluginSound;
+import com.github.orgs.kotobaminers.kotobatblt.database.DatabaseManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.ExternalQuery;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.SentenceManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.PluginPermission;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.GUIIcon;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginGUI;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginGUI.GUITitle;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginMessage.Message;
+import com.github.orgs.kotobaminers.kotobatblt.utility.PluginSound;
 
 import net.md_5.bungee.api.ChatColor;
 

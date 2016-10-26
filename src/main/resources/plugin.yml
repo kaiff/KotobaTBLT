@@ -1,6 +1,6 @@
 name: KotobaTBLT
 version: 0.0.1
-main: com.github.orgs.kotobaminers.kotobatblt.KotobaTBLT
+main: com.github.orgs.kotobaminers.kotobatblt.kotobatblt.KotobaTBLT
 
 commands:
   TBLT:

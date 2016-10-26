@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.kotobatblt.kotobatblt;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,19 +10,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
-import com.github.orgs.kotobaminers.database.PlayerData;
-import com.github.orgs.kotobaminers.database.PlayerManager;
-import com.github.orgs.kotobaminers.database.Sentence;
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.database.SentenceManager;
-import com.github.orgs.kotobaminers.userinterface.GUIIcon;
-import com.github.orgs.kotobaminers.userinterface.Holograms;
-import com.github.orgs.kotobaminers.userinterface.HologramsManager;
-import com.github.orgs.kotobaminers.userinterface.NPCManager;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI;
-import com.github.orgs.kotobaminers.userinterface.PluginGUI.GUITitle;
-import com.github.orgs.kotobaminers.utility.PluginSound;
-import com.github.orgs.kotobaminers.utility.Utility;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence;
+import com.github.orgs.kotobaminers.kotobatblt.database.SentenceManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.GUIIcon;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.Holograms;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.HologramsManager;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.NPCManager;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginGUI;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginGUI.GUITitle;
+import com.github.orgs.kotobaminers.kotobatblt.utility.PluginSound;
+import com.github.orgs.kotobaminers.kotobatblt.utility.Utility;
 
 import net.citizensnpcs.api.event.NPCLeftClickEvent;
 import net.citizensnpcs.api.event.NPCRightClickEvent;

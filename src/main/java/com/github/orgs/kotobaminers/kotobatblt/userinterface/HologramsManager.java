@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.userinterface;
+package com.github.orgs.kotobaminers.kotobatblt.userinterface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,7 +8,7 @@ import java.util.Optional;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 
-import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
+import com.github.orgs.kotobaminers.kotobatblt.kotobatblt.PluginManager;
 
 public class HologramsManager {
 	

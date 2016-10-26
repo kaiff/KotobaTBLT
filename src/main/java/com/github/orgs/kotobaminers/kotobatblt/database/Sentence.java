@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.database;
+package com.github.orgs.kotobaminers.kotobatblt.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,8 +10,8 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
-import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.PluginPermission;
 
 public class Sentence {
 	private static final String JAPANESE_INI = "Enter Japanese";

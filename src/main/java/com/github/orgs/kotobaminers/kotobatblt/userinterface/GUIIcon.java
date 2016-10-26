@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.userinterface;
+package com.github.orgs.kotobaminers.kotobatblt.userinterface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,16 +16,16 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.github.orgs.kotobaminers.database.PlayerData;
-import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
-import com.github.orgs.kotobaminers.database.PlayerManager;
-import com.github.orgs.kotobaminers.database.Sentence;
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
-import com.github.orgs.kotobaminers.database.SentenceManager;
-import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginCommand;
-import com.github.orgs.kotobaminers.userinterface.PluginMessage.Message;
-import com.github.orgs.kotobaminers.utility.PluginSound;
-import com.github.orgs.kotobaminers.utility.Utility;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence;
+import com.github.orgs.kotobaminers.kotobatblt.database.SentenceManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.kotobatblt.kotobatblt.PluginCommandExecutor.PluginCommand;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.PluginMessage.Message;
+import com.github.orgs.kotobaminers.kotobatblt.utility.PluginSound;
+import com.github.orgs.kotobaminers.kotobatblt.utility.Utility;
 
 import net.citizensnpcs.api.npc.NPC;
 

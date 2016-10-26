@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.database;
+package com.github.orgs.kotobaminers.kotobatblt.database;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,8 +10,8 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang.BooleanUtils;
 
-import com.github.orgs.kotobaminers.database.PlayerData.EditMode;
-import com.github.orgs.kotobaminers.database.PlayerData.PluginPermission;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.EditMode;
+import com.github.orgs.kotobaminers.kotobatblt.database.PlayerData.PluginPermission;
 
 public class PlayerManager extends DatabaseManager {
 

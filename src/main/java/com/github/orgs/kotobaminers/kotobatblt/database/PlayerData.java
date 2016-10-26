@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.database;
+package com.github.orgs.kotobaminers.kotobatblt.database;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-import com.github.orgs.kotobaminers.database.Sentence.Expression;
+import com.github.orgs.kotobaminers.kotobatblt.database.Sentence.Expression;
 
 public class PlayerData {
 	private UUID uuid = null;

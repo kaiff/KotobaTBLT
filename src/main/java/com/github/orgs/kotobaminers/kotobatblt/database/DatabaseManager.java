@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.database;
+package com.github.orgs.kotobaminers.kotobatblt.database;
 
 import java.io.File;
 import java.sql.Connection;
@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import com.github.orgs.kotobaminers.kotobatblt.PluginManager;
+import com.github.orgs.kotobaminers.kotobatblt.kotobatblt.PluginManager;
 
 public abstract class DatabaseManager {
 	static Connection connection = null;

@@ -1,4 +1,4 @@
-package com.github.orgs.kotobaminers.utility;
+package com.github.orgs.kotobaminers.kotobatblt.utility;
 
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;

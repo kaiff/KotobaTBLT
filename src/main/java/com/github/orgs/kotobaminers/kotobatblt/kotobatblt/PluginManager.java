@@ -1,6 +1,6 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.kotobatblt.kotobatblt;
 
-import com.github.orgs.kotobaminers.userinterface.HologramsManager;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.HologramsManager;
 
 public class PluginManager {
 	private static KotobaTBLT plugin = null;

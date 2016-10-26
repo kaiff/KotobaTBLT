@@ -1,10 +1,10 @@
-package com.github.orgs.kotobaminers.kotobatblt;
+package com.github.orgs.kotobaminers.kotobatblt.kotobatblt;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.orgs.kotobaminers.database.DatabaseManager;
-import com.github.orgs.kotobaminers.kotobatblt.PluginCommandExecutor.PluginCommand;
-import com.github.orgs.kotobaminers.userinterface.HologramsManager;
+import com.github.orgs.kotobaminers.kotobatblt.database.DatabaseManager;
+import com.github.orgs.kotobaminers.kotobatblt.kotobatblt.PluginCommandExecutor.PluginCommand;
+import com.github.orgs.kotobaminers.kotobatblt.userinterface.HologramsManager;
 
 public final class KotobaTBLT extends JavaPlugin {
 	@Override
